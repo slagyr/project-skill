@@ -136,11 +136,12 @@ This channel receives:
 
 1. Read registry, find active projects
 2. For each active project with an active iteration:
+   - Read ITERATION.md for the ordered story list
    - Run `bd ready` to find unblocked tasks
-   - Spawn sub-agents for parallelizable work
-   - Each sub-agent: claim task (`bd update <id> --claim`), do work, write deliverable, close task
-   - Update PROGRESS in beads comments
-3. Commit progress
+   - **Prioritize work in ITERATION.md story order first**, then by bead priority for non-iteration tasks
+   - Each task: claim (`bd update <id> --claim`), do work, write deliverable to `iterations/<N>/<story-id>.md`, close (`bd update <id> -s closed`)
+   - Commit after each completed story
+3. Notify the project's Channel when all stories are done, no ready beads remain, or a blocker is hit
 
 ### Preparing for Check-in
 
