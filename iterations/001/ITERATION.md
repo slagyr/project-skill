@@ -7,6 +7,10 @@ Status: active
 - projects-skill-3w7: Set up cron job for autonomous work sessions
 - projects-skill-0ir: Define and document the check-in/review workflow
 - projects-skill-x1t: Add Discord channel creation for project check-ins
+- projects-skill-dbx: Add README.md with installation instructions
+- projects-skill-57k: Move SKILL.md to projects/SKILL.md subdirectory
+- projects-skill-h98: Cron should prioritize iteration story order, then bead priority
+- projects-skill-eeb: REVIEW.md only for blockers/questions, not progress summaries
 
 ## Guardrails
 - This is the bootstrap iteration — the skill is building itself
