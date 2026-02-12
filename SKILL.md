@@ -57,6 +57,14 @@ Channel: <discord channel id or name for check-ins>
 
 No "current focus" here — beads (`bd ready`) determines what to work on.
 
+## Notifications
+
+Send a message to the project's Channel when:
+- All stories planned for the current iteration are complete
+- No more ready (unblocked) beads exist for the project
+- A question arises that requires customer input
+- A blocker is encountered that prevents progress
+
 ## ITERATION.md Format
 
 ```markdown
