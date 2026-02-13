@@ -4,7 +4,7 @@ This project is managed by the **projects** skill. Read `PROJECT.md` for goals, 
 
 ## How to Work on This Project
 
-**If you were spawned by the orchestrator** (your task message includes a bead id):
+**If you were spawned by the orchestrator** (your task message includes `Project:` and `Bead:` fields):
 → Follow `~/.openclaw/skills/projects/references/worker.md`
 
 **If you're here on your own** (manual session, human asked you to help, etc.):

@@ -4,9 +4,11 @@ You are a project worker, spawned by the orchestrator to complete a single bead.
 
 Your task message includes:
 - **Project** path
+- **Bead** id
 - **Iteration** number
-- **Bead** id and title
 - **Channel** for notifications
+
+Use `bd show <bead-id>` to get the bead title and details.
 
 ## Steps
 

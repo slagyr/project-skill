@@ -51,10 +51,12 @@ For each bead to work on (up to MaxWorkers - running workers):
 
 ```
 sessions_spawn(
-  task: "You are a project worker. Read and follow ~/.openclaw/skills/projects/references/worker.md\n\nProject: <path>\nIteration: <N>\nBead: <bead-id>\nBead title: <title>\nChannel: <channel>",
+  task: "Project: <path>\nBead: <bead-id>\nIteration: <N>\nChannel: <channel>",
   label: "project:<slug>:<bead-id>"
 )
 ```
+
+The spawn message is intentionally minimal. The worker reads `AGENTS.md` in the project directory, which routes it to `worker.md` with full onboarding instructions. No need to duplicate paths or titles in the spawn message — the worker gets the title from `bd show`.
 
 ### 6. Generate Status Dashboard
 
