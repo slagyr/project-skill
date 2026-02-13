@@ -4,6 +4,39 @@ You are the projects orchestrator. You do NOT perform bead work — you spawn wo
 
 ## Steps
 
+### 0. Frequency Scaling (Early Exit Check)
+
+Before doing any work, check for the orchestrator state file at `$PROJECTS_HOME/.orchestrator-state.json`. This file tracks idle state to reduce unnecessary polling when there's no work.
+
+**State file format:**
+
+```json
+{
+  "idleSince": "2026-02-13T08:00:00Z",
+  "idleReason": "no-active-iterations",
+  "lastRunAt": "2026-02-13T08:30:00Z"
+}
+```
+
+**Fields:**
+- `idleSince` — ISO timestamp when the orchestrator first entered idle state (no work spawned)
+- `idleReason` — why it's idle: `"no-active-iterations"`, `"no-ready-beads"`, or `"all-at-capacity"`
+- `lastRunAt` — ISO timestamp of the last full orchestrator run
+
+**Backoff intervals** (time since `lastRunAt` before running again):
+- `no-active-iterations` → **30 minutes** (nothing to do; new iterations require human action)
+- `no-ready-beads` → **15 minutes** (beads may unblock via external action)
+- `all-at-capacity` → **10 minutes** (workers may finish soon)
+- File missing or `idleSince` is null → **no backoff** (normal 5-minute cron cadence)
+
+**Logic:**
+1. Read `$PROJECTS_HOME/.orchestrator-state.json` (if it doesn't exist, proceed normally)
+2. If `idleSince` is set, calculate elapsed time since `lastRunAt`
+3. If elapsed time < the backoff interval for the `idleReason`, exit immediately — do nothing
+4. Otherwise, proceed with the full orchestrator flow
+
+**Important:** The state file is updated at the END of each full run (Step 6), not here. This step only reads it.
+
 ### 1. Load Registry
 
 Resolve `PROJECTS_HOME` (default: `~/Projects` — where `~` is the user's home directory, NOT the agent workspace). Read `$PROJECTS_HOME/registry.md`. For each project with status `active`:
@@ -65,6 +98,28 @@ The spawn message is intentionally minimal. The worker reads `AGENTS.md` in the 
 
 After spawning workers (or if no work was needed), generate `$PROJECTS_HOME/STATUS.md` following `references/status-dashboard.md`. This provides a progress snapshot across all active projects.
 
-### 7. Done
+### 7. Update Orchestrator State
+
+Write `$PROJECTS_HOME/.orchestrator-state.json` to control frequency scaling on subsequent runs.
+
+**If workers were spawned this run:**
+- Set `idleSince` to `null` (clear idle state)
+- Set `idleReason` to `null`
+- Set `lastRunAt` to current time
+
+**If NO workers were spawned, determine the reason and set idle state:**
+
+1. **No active iterations found** (Step 2 filtered out everything) → `idleReason: "no-active-iterations"`
+2. **Active iterations exist but no ready beads** (Step 4 found nothing) → `idleReason: "no-ready-beads"`
+3. **Ready beads exist but all projects at MaxWorkers capacity** (Step 3 skipped everything) → `idleReason: "all-at-capacity"`
+
+For idle states:
+- If `idleSince` was already set (from a previous run), **keep the existing value** — don't reset it
+- If `idleSince` was null, set it to the current time
+- Set `lastRunAt` to current time
+
+This ensures backoff is measured from the last full run, while `idleSince` tracks how long the system has been continuously idle.
+
+### 8. Done
 
 That's it. Do not do any bead work yourself. Just spawn and exit.

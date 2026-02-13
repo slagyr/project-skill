@@ -290,6 +290,17 @@ The system uses a two-tier architecture:
 
 Workers are spawned with label `project:<slug>:<bead-id>` so the orchestrator can count active workers per project. The `MaxWorkers` cap applies to spawned workers — the orchestrator doesn't count toward it.
 
+### Orchestrator Frequency Scaling
+
+The orchestrator automatically reduces polling frequency when there's no work to do. It writes `$PROJECTS_HOME/.orchestrator-state.json` after each run, tracking idle state and reason. On subsequent runs, it checks this file and skips execution if the backoff interval hasn't elapsed:
+
+- **No active iterations** → polls every 30 minutes (vs. default 5)
+- **No ready beads** → polls every 15 minutes
+- **All projects at capacity** → polls every 10 minutes
+- **Work available** → clears idle state, resumes normal 5-minute polling
+
+This saves significant token usage when projects are paused or between iterations.
+
 ### Worker Error Handling
 
 Workers handle errors via a structured escalation path (see `references/worker.md` for full details):
