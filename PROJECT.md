@@ -2,7 +2,6 @@
 
 Status: active
 Priority: high
-Budget: unlimited
 Autonomy: full
 Checkin: daily
 Channel: 1471680593497554998

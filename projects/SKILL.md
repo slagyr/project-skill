@@ -13,7 +13,7 @@ Manage long-running autonomous projects with iterative delivery cycles.
 ~/projects/
   registry.md                    # Master list of all projects
   <project-slug>/                # Each project is its own git repo
-    PROJECT.md                   # Goals, guardrails, autonomy, budget
+    PROJECT.md                   # Goals, guardrails, autonomy
     .beads/                      # bd task tracking
     iterations/
       001/
@@ -43,7 +43,6 @@ Statuses: `active`, `paused`, `blocked`. No "complete" — pause permanently ins
 
 Status: active | paused | blocked
 Priority: high | normal | low
-Budget: unlimited | <constraint>
 Autonomy: full | ask-first | research-only
 Checkin: daily | weekly | on-demand
 Channel: <discord channel id or name for check-ins>
