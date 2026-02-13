@@ -262,3 +262,16 @@ Workers handle errors via a structured escalation path (see `references/worker.m
 3. **Questions** — Notify Channel, continue other aspects if possible
 4. **Guardrail conflicts** — Never violate; block and escalate
 5. **Partial completion** — Write deliverable for completed work, block with context
+
+## Skill Migration
+
+When the skill format evolves (e.g., PROJECT.md fields change, ITERATION.md structure updates), existing projects need migration. This is **user-triggered, not automatic**.
+
+### How It Works
+
+A user sends a message in the project's Channel like:
+- "update to latest skill format"
+- "migrate project format"
+- "sync with current skill template"
+
+The agent handling the channel message should then follow `references/migration.md`.
