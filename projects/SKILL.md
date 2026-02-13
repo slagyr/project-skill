@@ -195,3 +195,32 @@ Set up a recurring cron job to trigger work sessions:
 ```
 
 Adjust frequency based on bandwidth and project needs.
+
+## Agent Spawning & Parallel Execution
+
+The projects system supports parallel sub-agent execution with configurable concurrency per project.
+
+### MaxAgents
+
+Each project's `PROJECT.md` includes a `MaxAgents` field (default: 1) that controls how many sub-agents can work on the project simultaneously. This prevents resource contention and keeps work serialized when needed.
+
+### Session Labeling
+
+Sub-agents spawned for project work use the label convention `project:<slug>` (e.g., `project:my-app`). This allows the cron worker to count active agents per project by querying `sessions_list` and filtering for labels with that prefix.
+
+### Concurrency Check Flow
+
+When the cron worker fires, it follows this sequence for each active project:
+
+1. Read `PROJECT.md` to get `MaxAgents` (default 1)
+2. Call `sessions_list` and count sessions whose label starts with `project:<slug>`
+3. If `running agents >= MaxAgents`, skip the project entirely
+4. Otherwise, proceed to claim and work tasks
+
+This ensures the system never over-subscribes a project. For most projects, `MaxAgents: 1` is appropriate — it keeps work sequential and avoids merge conflicts or duplicated effort. Increase it for projects with independent, parallelizable workstreams.
+
+### Cron Worker vs Sub-Agent Spawning
+
+The cron worker itself runs in an isolated session and works tasks directly — it does not spawn additional sub-agents by default. The `MaxAgents` check prevents multiple overlapping cron runs from working the same project. If a previous cron session is still active and working on the project, the next cron invocation will see it and skip.
+
+For projects that benefit from parallelism (e.g., independent research tasks), the worker can use `sessions_spawn` with label `project:<slug>` to delegate work to sub-agents, each taking a different story. The MaxAgents cap still applies to the total count of spawned agents plus the worker itself.
