@@ -28,6 +28,7 @@ $PROJECTS_HOME/
       001/
         ITERATION.md             # Status, stories, iteration guardrails
         <id-suffix>-<name>.md   # Deliverable per story (e.g. w9g-extract-worker.md)
+        RETRO.md                 # Auto-generated retrospective (created on iteration completion)
         assets/                  # Screenshots, artifacts
       002/
         ...
@@ -193,6 +194,8 @@ When REVIEW.md is needed (`iterations/<N>/REVIEW.md`):
 Notify the project's Channel when creating a REVIEW.md.
 
 ### Iteration Transitions
+
+When the last bead in an iteration closes, the worker auto-generates `RETRO.md` (see `references/worker.md` §8) before marking the iteration complete. This retrospective is available for the next check-in.
 
 After check-in:
 1. Mark current iteration complete in ITERATION.md (if agreed)
