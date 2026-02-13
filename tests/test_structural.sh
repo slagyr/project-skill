@@ -203,6 +203,16 @@ if [ -f "$REGISTRY" ]; then
       fail "Channel not set — notifications will be skipped"
     fi
 
+    # iteration-complete notification should include a mention for phone alerts
+    iter_complete="$(grep -i 'iteration-complete' "$project_md" | head -1)"
+    if echo "$iter_complete" | grep -q 'mention.*<@[0-9]\+>'; then
+      pass "iteration-complete includes @mention"
+    elif echo "$iter_complete" | grep -qi 'on'; then
+      fail "iteration-complete is on but missing @mention — no phone notification"
+    else
+      pass "iteration-complete not enabled (mention not required)"
+    fi
+
   done < <(grep '|' "$REGISTRY" | tail -n +3)
 fi
 
