@@ -105,12 +105,13 @@ All events default to `on` if the table is missing from PROJECT.md.
 
 ### Mentions
 
-On channels that support mentions (Discord, Slack, etc.), use `mention <user-ref>` in the Notify column to ping the project owner. This is useful for high-signal events like `iteration-complete` or `blocker` where a phone notification is desired.
+On channels that support mentions (Discord, Slack, etc.), add `mention <user-ref>` in the Notify column to ping the project owner. This is configurable per event — add it only to high-signal events where a phone notification is desired.
+
+By default, only `iteration-complete` includes a mention. Add mentions to other events (e.g., `blocker`) as needed per project.
 
 Example:
 ```
 | iteration-complete | on (mention <@discord-user-id>) |
-| blocker | on (mention <@discord-user-id>) |
 ```
 
 Workers should include the mention in the notification message when the Notify value contains a `mention` directive.
