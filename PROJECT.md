@@ -1,11 +1,11 @@
 # Projects Skill
 
-Status: active
-Priority: high
-Autonomy: full
-Checkin: daily
-Channel: 1471680593497554998
-MaxWorkers: 1
+- **Status:** active
+- **Priority:** high
+- **Autonomy:** full
+- **Checkin:** daily
+- **Channel:** 1471680593497554998
+- **MaxWorkers:** 1
 
 ## Notifications
 

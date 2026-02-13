@@ -1,6 +1,6 @@
 # Iteration 002
 
-Status: complete
+- **Status:** complete
 
 ## Stories
 - projects-skill-a9m: Use descriptive filenames for story deliverables

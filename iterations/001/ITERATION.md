@@ -1,6 +1,6 @@
 # Iteration 001
 
-Status: complete
+- **Status:** complete
 
 ## Stories
 - projects-skill-fvd: Test end-to-end: create story, spawn sub-agent, produce deliverable

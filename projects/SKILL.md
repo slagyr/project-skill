@@ -41,12 +41,12 @@ Statuses: `active`, `paused`, `blocked`. No "complete" — pause permanently ins
 ```markdown
 # <Project Name>
 
-Status: active | paused | blocked
-Priority: high | normal | low
-Autonomy: full | ask-first | research-only
-Checkin: daily | weekly | on-demand
-Channel: <discord channel id or name for check-ins>
-MaxWorkers: <number, default 1>
+- **Status:** active | paused | blocked
+- **Priority:** high | normal | low
+- **Autonomy:** full | ask-first | research-only
+- **Checkin:** daily | weekly | on-demand
+- **Channel:** <discord channel id or name for check-ins>
+- **MaxWorkers:** <number, default 1>
 
 ## Goal
 <High-level description of what this project aims to achieve>
@@ -90,7 +90,7 @@ All events default to `on` if the table is missing from PROJECT.md.
 ```markdown
 # Iteration <N>
 
-Status: planning | active | complete
+- **Status:** planning | active | complete
 
 ## Stories
 - bd-xxxx: <title>
