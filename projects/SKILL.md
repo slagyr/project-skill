@@ -72,8 +72,8 @@ Statuses: `active`, `paused`, `blocked`. No "complete" — pause permanently ins
 | bead-complete | on |
 | iteration-complete | on (mention <@user-id>) |
 | no-ready-beads | on |
-| question | on |
-| blocker | on |
+| question | on (mention <@user-id>) |
+| blocker | on (mention <@user-id>) |
 
 ## Guardrails
 <Project-specific constraints and boundaries>
@@ -107,11 +107,13 @@ All events default to `on` if the table is missing from PROJECT.md.
 
 On channels that support mentions (Discord, Slack, etc.), add `mention <user-ref>` in the Notify column to ping the project owner. This is configurable per event — add it only to high-signal events where a phone notification is desired.
 
-By default, only `iteration-complete` includes a mention. Add mentions to other events (e.g., `blocker`) as needed per project.
+By default, `iteration-complete`, `blocker`, and `question` include mentions — these are events that need human attention. Add or remove mentions on other events as needed per project.
 
 Example:
 ```
 | iteration-complete | on (mention <@discord-user-id>) |
+| blocker | on (mention <@discord-user-id>) |
+| question | on (mention <@discord-user-id>) |
 ```
 
 Workers should include the mention in the notification message when the Notify value contains a `mention` directive.
