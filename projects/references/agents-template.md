@@ -6,12 +6,14 @@ This project is managed by the **projects** skill. Read `PROJECT.md` for goals, 
 
 **If you were spawned by the orchestrator** (your task message includes `Project:` and `Bead:` fields):
 → Follow `~/.openclaw/skills/projects/references/worker.md`
+  (or online: https://raw.githubusercontent.com/slagyr/project-skill/refs/heads/main/projects/references/worker.md)
 
 **If you're here on your own** (manual session, human asked you to help, etc.):
 1. Read `PROJECT.md` — understand the goal and guardrails
 2. Find the active iteration: look in `iterations/*/ITERATION.md` for `Status: active`
 3. Run `bd ready` to see available work
 4. Pick a bead, then follow the worker workflow: `~/.openclaw/skills/projects/references/worker.md`
+   (or online: https://raw.githubusercontent.com/slagyr/project-skill/refs/heads/main/projects/references/worker.md)
 
 ## Quick Reference
 
