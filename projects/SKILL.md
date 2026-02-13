@@ -20,6 +20,7 @@ Resolve `PROJECTS_HOME` at the start of every session. Check if a custom value i
 ```
 $PROJECTS_HOME/
   registry.md                    # Master list of all projects
+  STATUS.md                      # Auto-generated progress dashboard (see references/status-dashboard.md)
   <project-slug>/                # Each project is its own git repo
     PROJECT.md                   # Goals, guardrails, autonomy
     .beads/                      # bd task tracking

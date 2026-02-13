@@ -56,6 +56,10 @@ sessions_spawn(
 )
 ```
 
-### 6. Done
+### 6. Generate Status Dashboard
+
+After spawning workers (or if no work was needed), generate `$PROJECTS_HOME/STATUS.md` following `references/status-dashboard.md`. This provides a progress snapshot across all active projects.
+
+### 7. Done
 
 That's it. Do not do any bead work yourself. Just spawn and exit.
