@@ -185,7 +185,7 @@ Set up a recurring cron job to trigger work sessions:
 
 ```json
 {
-  "schedule": { "kind": "every", "everyMs": 14400000 },
+  "schedule": { "kind": "every", "everyMs": 300000 },
   "payload": {
     "kind": "agentTurn",
     "message": "Check ~/projects/registry.md for active projects. For each active project with an active iteration, run bd ready and work on unblocked tasks. Commit progress."
