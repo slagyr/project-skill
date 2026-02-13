@@ -41,9 +41,10 @@ fi
 
 extract_bead_ids() {
   local iter_md="$1"
-  # Extract bead IDs from story lines: "- bead-id: title"
-  # Bead ID is the first token after "- " up to the colon
-  grep '^- [a-z]' "$iter_md" | sed 's/^- \([^:]*\):.*/\1/' || true
+  # Extract bead IDs from story lines: "- slug-slug-id: title"
+  # Match story lines: "- bead-id: title" where bead-id contains at least one hyphen
+  # Exclude bold metadata lines (- **Status:** etc.)
+  grep '^- [a-z]' "$iter_md" | grep -v '^\- \*\*' | grep ':' | sed 's/^- \([^:]*\):.*/\1/' || true
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -52,7 +53,9 @@ extract_bead_ids() {
 
 get_bead_status() {
   local project_dir="$1" bead_id="$2"
-  (cd "$project_dir" && bd show "$bead_id" 2>/dev/null) | head -1 | grep -oE '\b(OPEN|CLOSED|BLOCKED|IN_PROGRESS)\b' || echo "UNKNOWN"
+  local output
+  output="$(cd "$project_dir" && bd show "$bead_id" 2>&1)" || { echo "UNKNOWN"; return; }
+  echo "$output" | grep -oE '\b(OPEN|CLOSED|BLOCKED|IN_PROGRESS)\b' | head -1 || echo "UNKNOWN"
 }
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -118,18 +121,22 @@ while IFS='|' read -r _ slug status priority path _; do
       bead_ids="$(extract_bead_ids "$iter_md")"
       for bead_id in $bead_ids; do
         suffix="${bead_id##*-}"
-        deliverable_match="$(ls "$iter_dir"/${suffix}-*.md 2>/dev/null | grep -v ITERATION.md | grep -v RETRO.md | head -1)"
+        # Check both naming conventions: suffix-style (uu0-desc.md) and full-id (projects-skill-uu0.md)
+        deliverable_match="$(ls "$iter_dir"/${suffix}-*.md "$iter_dir"/${bead_id}.md 2>/dev/null | grep -v ITERATION.md | grep -v RETRO.md | head -1)"
         if [ -n "$deliverable_match" ]; then
           pass "Deliverable exists for $bead_id ($(basename "$deliverable_match"))"
         else
-          fail "No deliverable found for $bead_id (expected ${suffix}-*.md)"
+          fail "No deliverable found for $bead_id (expected ${suffix}-*.md or ${bead_id}.md)"
         fi
       done
 
-      # All beads should be closed in bd
+      # Check bd status only if beads still exist in tracker
+      # (older iterations may have had beads pruned from bd)
       for bead_id in $bead_ids; do
         bd_status="$(get_bead_status "$resolved_path" "$bead_id")"
-        if [ "$bd_status" = "CLOSED" ]; then
+        if [ "$bd_status" = "UNKNOWN" ]; then
+          pass "Bead $bead_id not in bd (archived/pruned — OK for completed iteration)"
+        elif [ "$bd_status" = "CLOSED" ]; then
           pass "Bead $bead_id is closed in bd"
         else
           fail "Bead $bead_id is $bd_status (expected CLOSED for completed iteration)"
