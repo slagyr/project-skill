@@ -71,7 +71,7 @@ Send a message to the project's Channel when:
 ```markdown
 # Iteration <N>
 
-Status: active | complete
+Status: planning | active | complete
 
 ## Stories
 - bd-xxxx: <title>
@@ -83,6 +83,10 @@ Status: active | complete
 ## Notes
 <Any relevant context>
 ```
+
+- **planning**: Stories are being defined; workers must not pick up tasks yet
+- **active**: Ready for work; workers claim and complete tasks from this iteration
+- **complete**: All stories delivered; immutable — never modify completed iterations
 
 Completed iterations are **immutable** — never modify them.
 
