@@ -206,20 +206,20 @@ bd dep add <a> <b>    # Add dependency
 
 ## Cron Integration
 
-Set up a recurring cron job to trigger work sessions:
+Set up a recurring cron job for the orchestrator:
 
 ```json
 {
   "schedule": { "kind": "every", "everyMs": 300000 },
   "payload": {
     "kind": "agentTurn",
-    "message": "Check ~/projects/registry.md for active projects. For each active project with an active iteration, run bd ready and work on unblocked tasks. Commit progress."
+    "message": "You are the projects orchestrator. Read and follow ~/.openclaw/skills/projects/references/orchestrator.md"
   },
   "sessionTarget": "isolated"
 }
 ```
 
-Adjust frequency based on bandwidth and project needs.
+The orchestrator checks for work and spawns workers — it never does bead work itself.
 
 ## Worker Spawning & Parallel Execution
 
@@ -244,8 +244,12 @@ When the cron worker fires, it follows this sequence for each active project:
 
 This ensures the system never over-subscribes a project. For most projects, `MaxWorkers: 1` is appropriate — it keeps work sequential and avoids merge conflicts or duplicated effort. Increase it for projects with independent, parallelizable workstreams.
 
-### Cron Worker vs Sub-Agent Spawning
+### Orchestrator vs Worker Architecture
 
-The cron worker itself runs in an isolated session and works tasks directly — it does not spawn additional workers by default. The `MaxWorkers` check prevents multiple overlapping cron runs from working the same project. If a previous cron session is still active and working on the project, the next cron invocation will see it and skip.
+The system uses a two-tier architecture:
 
-For projects that benefit from parallelism (e.g., independent research tasks), the worker can use `sessions_spawn` with label `project:<slug>` to delegate work to workers, each taking a different story. The MaxWorkers cap still applies to the total count of spawned workers plus the worker itself.
+1. **Orchestrator** (cron job) — Runs every 5 minutes. Reads registry, finds active iterations, checks concurrency, and spawns worker sessions via `sessions_spawn`. Does NO bead work itself. See `references/orchestrator.md`.
+
+2. **Worker** (spawned session) — Receives a specific bead assignment. Claims the bead, does the work, writes a deliverable, closes the bead, commits, and sends notifications. See `references/worker.md`.
+
+Workers are spawned with label `project:<slug>:<bead-id>` so the orchestrator can count active workers per project. The `MaxWorkers` cap applies to spawned workers — the orchestrator doesn't count toward it.

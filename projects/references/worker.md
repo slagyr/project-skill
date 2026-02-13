@@ -1,50 +1,59 @@
-# Projects Worker
+# Project Worker
 
-You are the projects worker. Follow these steps each run.
+You are a project worker, spawned by the orchestrator to complete a single bead.
 
-## 1. Load Registry
+Your task message includes:
+- **Project** path
+- **Iteration** number
+- **Bead** id and title
+- **Channel** for notifications
 
-Read `~/projects/registry.md`. For each project with status `active`:
+## Steps
 
-## 2. Check Concurrency
+### 1. Load Context
 
-1. Read the project's `PROJECT.md` — note the `MaxWorkers` setting (default 1)
-2. Call `sessions_list` and count sessions whose label starts with `project:<slug>`
-3. If running workers >= MaxWorkers, **skip this project**
+1. Read the project's `PROJECT.md` for guardrails, autonomy level, and notification settings
+2. Read `AGENTS.md` in the workspace root if it exists
+3. Read the iteration's `ITERATION.md` for iteration-level guardrails
 
-## 3. Find Work
+### 2. Claim the Bead
 
-1. Find the **active** iteration (status `active` in ITERATION.md). Skip `planning` and `complete` iterations.
-2. Run `bd ready` in the project directory to find unblocked tasks
-3. Prioritize tasks listed in ITERATION.md story order first, then by bead priority
+Run `bd update <bead-id> --claim` in the project directory.
 
-## 4. Execute Tasks
+If notifications `bead-start` is `on`, send a message to the Channel with the bead id and title.
 
-For each task:
+### 3. Do the Work
 
-1. Claim it: `bd update <id> --claim`
-2. Do the work described in the bead
-3. Write a deliverable to `iterations/<N>/<id-suffix>-<descriptive-name>.md` (e.g., `w9g-extract-worker.md`)
-4. Close: `bd update <id> -s closed`
-5. `git add -A && git commit -m "<summary> (<bead-id>)"`
+Execute the work described in the bead. Respect:
+- **Autonomy** field in PROJECT.md (full = do it, ask-first = ask via Channel)
+- **Guardrails** in PROJECT.md and ITERATION.md are hard constraints
 
-## 5. Notify
+### 4. Write Deliverable
 
-Check the **Notifications** table in PROJECT.md. For each event type set to `on`, send a message to the project's `Channel` when that event occurs:
+Write output to `iterations/<N>/<id-suffix>-<descriptive-name>.md`
+(e.g., `uu0-orchestrator-refactor.md`)
 
-- `bead-start`: You claimed a bead — notify with bead id and title
-- `bead-complete`: You completed a bead — notify with summary of what was done
+### 5. Close the Bead
+
+1. `bd update <bead-id> -s closed`
+2. `git add -A && git commit -m "<summary> (<bead-id>)"`
+
+If notifications `bead-complete` is `on`, send a message to the Channel with a summary.
+
+### 6. Check Iteration Completion
+
+Run `bd ready` in the project directory. If no open beads remain for the iteration, and all iteration stories are closed:
+- Update ITERATION.md status to `complete`
+- If notifications `iteration-complete` is `on`, notify the Channel
+
+## Notifications Reference
+
+Check the **Notifications** table in PROJECT.md. Events:
+- `bead-start`: You claimed a bead
+- `bead-complete`: You completed a bead
 - `iteration-complete`: All stories in the current iteration are done
 - `no-ready-beads`: No unblocked beads remain
 - `question`: A question needs customer input
 - `blocker`: A blocker prevents progress
-- `iteration-start`: An iteration status changed to active
 
 If the Notifications table is missing, treat all events as `on`.
-
-## 6. Respect Boundaries
-
-- **Autonomy** field in PROJECT.md controls what you can do without asking
-- **Guardrails** in PROJECT.md and ITERATION.md are hard constraints
-- Never modify completed iterations
-- Commit after every completed story
