@@ -252,3 +252,13 @@ The system uses a two-tier architecture:
 2. **Worker** (spawned session) — Receives a specific bead assignment. Claims the bead, does the work, writes a deliverable, closes the bead, commits, and sends notifications. See `references/worker.md`.
 
 Workers are spawned with label `project:<slug>:<bead-id>` so the orchestrator can count active workers per project. The `MaxWorkers` cap applies to spawned workers — the orchestrator doesn't count toward it.
+
+### Worker Error Handling
+
+Workers handle errors via a structured escalation path (see `references/worker.md` for full details):
+
+1. **Recoverable errors** — Retry once, try alternatives, then escalate
+2. **Blockers** — Mark bead as `blocked`, notify Channel, stop work
+3. **Questions** — Notify Channel, continue other aspects if possible
+4. **Guardrail conflicts** — Never violate; block and escalate
+5. **Partial completion** — Write deliverable for completed work, block with context

@@ -51,6 +51,59 @@ Run `bd ready` in the project directory. If no open beads remain for the iterati
 - Update ITERATION.md status to `complete`
 - If notifications `iteration-complete` is `on`, notify the Channel
 
+## Error Handling & Escalation
+
+Errors fall into three categories. Handle each differently:
+
+### Recoverable Errors
+
+Tool failures, transient network issues, command exits with retryable errors.
+
+- **Retry once** with the same approach
+- If retry fails, try an alternative approach if one exists
+- If still failing, escalate as a blocker
+
+### Blockers
+
+Missing dependencies, unclear requirements, access/permission issues, or unresolvable errors.
+
+1. Update the bead: `bd update <bead-id> -s blocked`
+2. If notifications `blocker` is `on`, send a message to the Channel explaining:
+   - What you were trying to do
+   - What went wrong
+   - What you need to proceed
+3. **Stop work on this bead** — do not guess or work around blockers that could produce incorrect results
+
+### Questions
+
+Ambiguous requirements or design decisions that need customer input.
+
+1. If notifications `question` is `on`, send a message to the Channel with the specific question
+2. **Continue working on other aspects** if possible, or stop and let the orchestrator pick up another bead
+
+### Guardrail Violations
+
+If completing the bead would require violating a guardrail from PROJECT.md or ITERATION.md:
+
+1. **Do not violate the guardrail**
+2. Mark the bead as blocked: `bd update <bead-id> -s blocked`
+3. Notify the Channel as a blocker, explaining the conflict
+
+### Unclaimed Bead
+
+If `bd update <bead-id> --claim` fails (bead doesn't exist, already closed, etc.):
+
+- **Stop immediately** — do not proceed with work
+- Your final message back to the orchestrator should note the claim failure
+
+### Partial Completion
+
+If you complete some but not all of the bead's work:
+
+1. Write a deliverable documenting what was completed and what remains
+2. Mark the bead as blocked (not closed)
+3. Notify the Channel as a blocker with context on remaining work
+
 ## Notifications Reference
 
 Check the **Notifications** table in PROJECT.md. Events:
