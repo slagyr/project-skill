@@ -1,0 +1,11 @@
+{:paths ["spec"]
+ :tasks {test {:doc "Run all specs"
+               :requires ([babashka.fs :as fs])
+               :task (do
+                       (load-file "spec/spec_helper.clj")
+                       (doseq [f (sort (map str (fs/glob "spec" "*_spec.clj")))]
+                         (println (str "\n── " f " ──"))
+                         (load-file f))
+                       (let [fails ((resolve 'spec-helper/summary))]
+                         (when (pos? fails)
+                           (throw (ex-info (str fails " specs failed") {})))))}}}

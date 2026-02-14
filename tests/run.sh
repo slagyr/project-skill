@@ -1,33 +1,20 @@
 #!/usr/bin/env bash
 # Projects Skill — Test Runner
-# Runs all test scripts in the tests/ directory (except itself).
+# Delegates to Babashka speclj specs.
 
 set -euo pipefail
 
-TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
-PASS=0
-FAIL=0
-ERRORS=()
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-for test_file in "$TESTS_DIR"/test_*.sh; do
-  [ -f "$test_file" ] || continue
-  test_name="$(basename "$test_file")"
-  if bash "$test_file"; then
-    ((PASS++))
+# Ensure bb is available
+if ! command -v bb >/dev/null 2>&1; then
+  if [ -x "$HOME/bin/bb" ]; then
+    export PATH="$HOME/bin:$PATH"
   else
-    ((FAIL++))
-    ERRORS+=("$test_name")
+    echo "ERROR: Babashka (bb) not found. Install: https://github.com/babashka/babashka"
+    exit 1
   fi
-done
-
-echo ""
-echo "==============================="
-echo "Results: $PASS passed, $FAIL failed"
-if [ ${#ERRORS[@]} -gt 0 ]; then
-  echo "Failed:"
-  for e in "${ERRORS[@]}"; do echo "  - $e"; done
-  exit 1
-else
-  echo "All tests passed ✓"
-  exit 0
 fi
+
+cd "$REPO_ROOT"
+exec bb run test
