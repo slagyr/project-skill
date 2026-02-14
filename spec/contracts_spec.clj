@@ -68,6 +68,10 @@
       (should-match #"(?i)deliverable.*required|produces a deliverable" content))
     (it "git commit on completion"
       (should-contain "git commit" content))
+    (it "iteration completion lock (.completing)"
+      (should-contain ".completing" content))
+    (it "RETRO.md generation on iteration completion"
+      (should-match #"(?i)RETRO\.md.*generat|generat.*RETRO\.md" content))
     (it "format tolerance"
       (should-match #"(?i)format tolerance" content))
     (it "notification discipline"
