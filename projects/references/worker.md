@@ -66,7 +66,11 @@ If notifications `bead-complete` is `on`, send a message to the Channel with a s
 
 ### 7. Check Iteration Completion
 
-Run `bd ready` in the project directory. If no open beads remain for the iteration, and all iteration stories are closed:
+Run `bd ready` in the project directory. If no open beads remain for the iteration, and all iteration stories are closed, proceed with the **completion guard**:
+
+**Completion guard (prevents duplicate notifications):** Before generating RETRO.md or sending notifications, check if `iterations/<N>/.completing` already exists. If it does, another worker is already completing this iteration — **skip iteration completion entirely** (no RETRO, no ITERATION.md update, no notification). If it does not exist, create it immediately (contents: your bead id) to claim the completion lock. Only the first worker to create `.completing` proceeds.
+
+After acquiring the lock:
 - Generate the iteration retrospective (see below)
 - Update ITERATION.md status to `complete`
 - If notifications `iteration-complete` is `on`, notify the Channel

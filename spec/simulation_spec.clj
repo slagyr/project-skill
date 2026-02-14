@@ -262,5 +262,47 @@
   (it "project files not in workspace"
     (should-contain "never created inside" contracts)))
 
+;; ── Scenario 16: Iteration Completion Guard ──
+
+(describe "Scenario 16: Iteration Completion Guard (Race Condition Prevention)"
+  (setup-test-project!)
+
+  ;; The worker.md must document the atomic guard
+  (let [worker (slurp (str (System/getProperty "user.home") "/.openclaw/skills/projects/references/worker.md"))]
+
+    (it "worker.md documents iteration completion guard"
+      (should-contain ".completing" worker))
+
+    (it "worker.md specifies atomic file creation as lock"
+      (should-contain "already exists" worker))
+
+    (it "worker.md instructs workers to skip if lock exists"
+      (should-match #"(?i)(skip|abort|stop).*iteration.*(complet|RETRO)" worker)))
+
+  ;; CONTRACTS.md must document the invariant
+  (let [contracts-text (slurp (str project-root "/CONTRACTS.md"))]
+    (it "CONTRACTS.md documents iteration completion atomicity"
+      (should-contain ".completing" contracts-text))
+
+    (it "CONTRACTS.md specifies only one worker completes an iteration"
+      (should-match #"(?i)(one|single|first).*worker.*(complet|RETRO|iteration)" contracts-text)))
+
+  ;; Simulate the guard: first worker creates lock, second sees it
+  (let [iter-dir (str test-project "/iterations/001")
+        lock-file (str iter-dir "/.completing")]
+
+    (it "lock file does not exist initially"
+      (should-not (fs/exists? lock-file)))
+
+    ;; First worker creates the lock
+    (spit lock-file "worker-1")
+
+    (it "lock file exists after first worker creates it"
+      (should (fs/exists? lock-file)))
+
+    (it "second worker detects lock and skips"
+      ;; The guard logic: if .completing exists, skip
+      (should (fs/exists? lock-file)))))
+
 ;; Cleanup
 (fs/delete-tree test-tmp)

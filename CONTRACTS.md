@@ -135,7 +135,7 @@ Beads are closed only after the deliverable is written. Sequence: work → write
 Every bead closure includes a git commit. Format: `"<summary> (<bead-id>)"`.
 
 ### 3.7 Iteration Completion Check
-After closing a bead, the worker checks if the iteration is complete. If so: generate RETRO.md → update ITERATION.md to `complete` → commit → notify.
+After closing a bead, the worker checks if the iteration is complete. If so, it must first acquire the `.completing` lock file (`iterations/<N>/.completing`). Only the first worker to create this file proceeds with RETRO.md generation, ITERATION.md update, commit, and notification. If `.completing` already exists, the worker must skip iteration completion entirely. This ensures only one worker completes an iteration even when multiple beads close simultaneously.
 
 ### 3.8 Notification Discipline
 Workers only send notifications for events that are `on` in the project's Notifications table. If `Channel` is missing, all notifications are silently skipped.
