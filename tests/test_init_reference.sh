@@ -34,11 +34,11 @@ for section in "Install the Skill" "Verify beads" "Create PROJECTS_HOME" "Orches
   fi
 done
 
-# References projects-init script
-if grep -q "projects-init" "$INIT_REF"; then
-  pass "References projects-init script"
+# References project-creation.md
+if grep -q "project-creation.md" "$INIT_REF"; then
+  pass "References project-creation.md"
 else
-  fail "Should reference projects-init script"
+  fail "Should reference project-creation.md"
 fi
 
 # References orchestrator.md

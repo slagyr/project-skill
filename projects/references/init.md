@@ -66,18 +66,7 @@ Use the OpenClaw cron tool to register this. The orchestrator runs every 5 minut
 
 ### 5. (Optional) Create Your First Project
 
-Use the `projects-init` script:
-
-```bash
-~/.openclaw/skills/projects/bin/projects-init my-project
-```
-
-Then complete the setup:
-1. Edit `~/Projects/my-project/PROJECT.md` — fill in Goal, Guardrails, Channel
-2. Create a Discord/notification channel and set the `Channel` field
-3. Add stories: `cd ~/Projects/my-project && bd create "Story title"`
-4. Update `iterations/001/ITERATION.md` with story references
-5. Set iteration status to `active` when ready for work
+Follow [`project-creation.md`](project-creation.md) — an interactive guide that walks through gathering project info, scaffolding the directory, and generating real PROJECT.md content.
 
 ## Verification
 

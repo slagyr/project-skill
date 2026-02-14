@@ -42,14 +42,7 @@ Autonomous background project management for OpenClaw agents. Enables long-runni
 
 ### Create a Project
 
-```bash
-mkdir -p ~/projects/my-project
-cd ~/projects/my-project
-git init
-bd init
-```
-
-Then write `PROJECT.md`, create `iterations/001/ITERATION.md`, add stories with `bd create`, and register in `~/projects/registry.md`.
+Follow [`references/project-creation.md`](projects/references/project-creation.md) — an interactive guide the agent walks through with the human to scaffold a new project with real content (not TODO templates).
 
 See `SKILL.md` for the full workflow.
 
