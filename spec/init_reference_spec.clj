@@ -1,5 +1,5 @@
 (ns init-reference-spec
-  (:require [spec-helper :refer [describe context it should should-contain]]
+  (:require [speclj.core :refer :all]
             [babashka.fs :as fs]
             [clojure.string :as str]))
 
@@ -9,23 +9,23 @@
 
 (describe "Init Reference (references/init.md)"
   (it "init.md exists"
-    (fs/exists? init-ref))
+    (should (fs/exists? init-ref)))
 
-  (let [content (when (fs/exists? init-ref) (slurp init-ref))]
-    (when content
+  (it "contains all required sections"
+    (let [content (slurp init-ref)]
       (doseq [section ["Install the Skill" "Verify beads" "Create PROJECTS_HOME"
                         "Orchestrator Cron" "Verification"]]
-        (it (str "contains section: " section)
-          (should-contain section content)))
+        (should-contain section content))))
 
-      (it "references project-creation.md"
-        (should-contain "project-creation.md" content))
-      (it "references orchestrator.md"
-        (should-contain "orchestrator.md" content))))
+  (it "references project-creation.md"
+    (should-contain "project-creation.md" (slurp init-ref)))
+
+  (it "references orchestrator.md"
+    (should-contain "orchestrator.md" (slurp init-ref)))
 
   (it "SKILL.md references init.md"
     (should-contain "init.md" (slurp (str skill-dir "/SKILL.md"))))
 
-  (let [readme (str project-root "/README.md")]
-    (it "README.md references init.md"
-      (and (fs/exists? readme) (str/includes? (slurp readme) "init.md")))))
+  (it "README.md references init.md"
+    (let [readme (str project-root "/README.md")]
+      (should (and (fs/exists? readme) (str/includes? (slurp readme) "init.md"))))))
