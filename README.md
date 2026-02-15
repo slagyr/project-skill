@@ -2,49 +2,18 @@
 
 Autonomous background project management for OpenClaw agents. Enables long-running projects with iterative delivery, parallel sub-agent execution, and structured check-ins.
 
-## Installation
+## Install
 
-**Automated setup:** Have your agent follow [`references/init.md`](projects/references/init.md) — it walks through every step: symlink the skill, verify `bd`, create `PROJECTS_HOME`, set up the orchestrator cron, and optionally scaffold your first project.
+```bash
+git clone https://github.com/slagyr/project-skill.git
+ln -s "$(pwd)/project-skill/projects" ~/.openclaw/skills/projects
+```
 
-**Manual setup:** See below.
+That's it. Your agent can now follow [`references/init.md`](projects/references/init.md) to complete setup (verify dependencies, create projects home, configure the orchestrator cron, and scaffold your first project).
 
-1. Symlink the skill into OpenClaw's skills folder:
-   ```
-   ln -s /path/to/projects-skill/projects ~/.openclaw/skills/projects
-   ```
+## Details
 
-2. Install [beads](https://github.com/openclaw/beads) (`bd`) for task tracking:
-   ```
-   bd --version
-   ```
-
-3. Create the projects directory and registry:
-   ```
-   mkdir -p ~/Projects
-   cat > ~/Projects/registry.md << 'EOF'
-   # Projects
-
-   | Slug | Status | Priority | Path |
-   |------|--------|----------|------|
-   EOF
-   ```
-
-4. Set up the orchestrator cron job (see SKILL.md §Cron Integration)
-
-## Requirements
-
-- **OpenClaw** with cron and sessions support
-- **beads** (`bd`) CLI for task tracking
-- **git** for version control
-- **Discord** channel (optional, for check-in notifications)
-
-## Usage
-
-### Create a Project
-
-Follow [`references/project-creation.md`](projects/references/project-creation.md) — an interactive guide the agent walks through with the human to scaffold a new project with real content (not TODO templates).
-
-See `SKILL.md` for the full workflow.
+See [SKILL.md](projects/SKILL.md) for the full workflow, configuration, and reference docs.
 
 ## License
 
