@@ -13,6 +13,12 @@
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
 (defn real-path [path] (try (str (fs/real-path path)) (catch Exception _ nil)))
 
+;; ── Legacy tests/ directory removed ──
+
+(describe "Legacy tests/ directory"
+  (it "tests/ directory does not exist (replaced by spec/ with speclj)"
+    (should-not (fs/exists? (str projects-home "/projects-skill/tests")))))
+
 ;; ── Skill Symlink ──
 
 (describe "Skill Symlink"
