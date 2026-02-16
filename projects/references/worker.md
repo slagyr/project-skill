@@ -26,6 +26,8 @@ Use `bd show <bead-id>` to get the bead title and details.
 3. **Read `AGENTS.md`** in the project root (if it exists) — this is the project-level entry point with project-specific conventions. (If you arrived here *via* the project's AGENTS.md, you've already read it.)
 4. **Read the iteration's `ITERATION.md`** (`.project/iterations/<N>/ITERATION.md`) — for iteration-level guardrails, story ordering, and notes
 
+   **ITERATION.md format:** Always use the canonical plain-text format for the Status field: `Status: active`, `Status: planning`, `Status: complete`. Do NOT use markdown bold (`- **Status:** active`) or any other formatting variant — the orchestrator parses this field and non-standard formatting can cause it to miss active iterations.
+
 ### 2. Claim the Bead
 
 Run `bd update <bead-id> --claim` in the project directory.
@@ -68,7 +70,7 @@ If notifications `bead-complete` is `on`, send a message to the Channel with a s
 
 Run `bd ready` in the project directory. If no open beads remain for the iteration, and all iteration stories are closed:
 
-- Update ITERATION.md status to `complete`
+- Update ITERATION.md status to `complete` using the canonical format: `Status: complete` (plain text, no markdown bold or list prefix)
 - If notifications `iteration-complete` is `on`, notify the Channel
 - Commit: `git add -A && git commit -m "Complete iteration <N>"`
 
