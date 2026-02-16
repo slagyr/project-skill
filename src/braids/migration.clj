@@ -158,21 +158,6 @@
                                        :path config-edn-path
                                        :slug slug
                                        :content edn-str})))))))
-
-      ;; Plan iteration.edn migrations
-      (let [iter-base (str path "/.braids/iterations")
-            legacy-iter-base (str path "/.project/iterations")
-            iter-dir (cond
-                       (file-exists? iter-base) iter-base
-                       (file-exists? legacy-iter-base) legacy-iter-base
-                       :else iter-base)]
-        (when (file-exists? iter-dir)
-          (doseq [iter-num (or (:list-dirs read-file) [])]
-            ;; list-dirs not available in pure fn; use convention instead
-            nil)))
-
-      ;; Iteration migration uses a separate entry point (see plan-iteration-migrations)
-      )
     @actions))
 
 (defn plan-iteration-migrations
