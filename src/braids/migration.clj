@@ -1,6 +1,7 @@
 (ns braids.migration
   (:require [clojure.string :as str]
-            [braids.project-config :as pc]))
+            [braids.project-config :as pc]
+            [braids.registry :as registry]))
 
 (defn- parse-md-table
   "Parses a markdown table into a vector of maps. Expects header row, separator, then data rows."
@@ -89,3 +90,67 @@
           (assoc :notifications (merge pc/default-notifications (:notifications notif-data)))
           (cond-> (seq (:mentions notif-data)) (assoc :notification-mentions (:mentions notif-data))))
       base)))
+
+;; --- Migration planning (pure) ---
+
+(defn plan-migration
+  "Plans migration actions. Takes a map with:
+   :state-home - path to braids state directory
+   :read-file - fn [path] -> string or nil
+   :file-exists? - fn [path] -> boolean
+   Returns a vector of action maps."
+  [{:keys [state-home read-file file-exists?]}]
+  (let [registry-edn-path (str state-home "/registry.edn")
+        registry-md-path (str state-home "/registry.md")
+        actions (atom [])
+        ;; Determine registry source
+        registry (cond
+                   ;; Already migrated
+                   (file-exists? registry-edn-path)
+                   (let [content (read-file registry-edn-path)]
+                     (braids.registry/parse-registry content))
+
+                   ;; Need to migrate
+                   (file-exists? registry-md-path)
+                   (let [md (read-file registry-md-path)
+                         parsed (parse-registry-md md)
+                         edn-str (braids.registry/registry->edn-string parsed)]
+                     (swap! actions conj {:type :write-registry-edn
+                                          :path registry-edn-path
+                                          :content edn-str})
+                     parsed)
+
+                   :else {:projects []})]
+    ;; Plan project.edn migrations
+    (doseq [{:keys [slug path]} (:projects registry)]
+      (let [edn-path (str path "/.project/project.edn")
+            md-path (str path "/.project/PROJECT.md")
+            root-md-path (str path "/PROJECT.md")]
+        (when-not (file-exists? edn-path)
+          (let [md-source (cond
+                            (file-exists? md-path) md-path
+                            (file-exists? root-md-path) root-md-path
+                            :else nil)]
+            (when md-source
+              (let [md (read-file md-source)
+                    parsed (parse-project-md md)
+                    edn-str (pc/project-config->edn-string parsed)]
+                (swap! actions conj {:type :write-project-edn
+                                     :path edn-path
+                                     :slug slug
+                                     :content edn-str})))))))
+    @actions))
+
+(defn format-migration-report
+  "Formats a human-readable report of migration actions."
+  [actions]
+  (if (empty? actions)
+    "Nothing to migrate — all files are already in EDN format."
+    (str "Migration plan:\n"
+         (str/join "\n"
+           (for [{:keys [type path slug]} actions]
+             (case type
+               :write-registry-edn (str "  ✓ Write registry.edn → " path)
+               :write-project-edn (str "  ✓ Write project.edn for " slug " → " path)
+               (str "  ? Unknown action: " type))))
+         "\n")))
