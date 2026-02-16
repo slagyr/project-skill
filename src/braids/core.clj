@@ -5,11 +5,13 @@
             [braids.orch :as orch]
             [braids.orch-io :as orch-io]
             [braids.list-io :as list-io]
-            [braids.iteration-io :as iter-io]))
+            [braids.iteration-io :as iter-io]
+            [braids.status-io :as status-io]))
 
 (def commands
   {"list"      {:command :list      :doc "Show projects from registry"}
    "iteration" {:command :iteration :doc "Show active iteration and bead statuses"}
+   "status"    {:command :status    :doc "Show dashboard across all projects"}
    "ready"     {:command :ready     :doc "List beads ready to work"}
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
    "help"      {:command :help      :doc "Show this help message"}})
@@ -53,6 +55,11 @@
       :list (let [json? (some #{"--json"} (:args (dispatch args)))]
               (println (list-io/load-and-list {:json? json?}))
               0)
+      :status (let [args (:args (dispatch args))
+                    json? (some #{"--json"} args)
+                    slug (first (remove #(str/starts-with? % "-") args))]
+                (println (status-io/load-and-status {:project-slug slug :json? json?}))
+                0)
       :iteration (let [args (:args (dispatch args))
                        json? (some #{"--json"} args)
                        ;; Use --project path or default to cwd
