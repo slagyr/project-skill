@@ -118,22 +118,18 @@
               (when (fs/directory? iterations-dir)
                 (doseq [iter-dir (sort (fs/list-dir iterations-dir))]
                   (let [iter-name (str (fs/file-name iter-dir))
-                        iter-md (str iter-dir "/ITERATION.md")]
-                    (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-md))
-                      (let [icontent (slurp iter-md)
-                            iter-status (some-> (re-find #"(?i)Status:\*\*\s*(.*)|Status:\s*(.*)" icontent)
-                                                rest
-                                                (->> (remove nil?) first str/trim))]
-                        (should (re-find #"(?i)Status:" icontent))
-                        (should-contain "## Stories" icontent)
+                        iter-edn-path (str iter-dir "/iteration.edn")]
+                    (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-edn-path))
+                      (let [iter-data (clojure.edn/read-string (slurp iter-edn-path))
+                            iter-status (when (:status iter-data) (name (:status iter-data)))]
+                        (should (contains? iter-data :status))
+                        (should (contains? iter-data :stories))
                         (should (contains? #{"planning" "active" "complete"} iter-status))
                         (when (= iter-status "active")
-                          (doseq [story-line (->> (str/split-lines icontent)
-                                                  (filter #(re-find #"^- [a-z]" %))
-                                                  (remove #(str/includes? % "**")))]
-                            (when-let [bead-id (some-> (re-find #"([a-z]+-[a-z0-9-]+)" story-line) second)]
+                          (doseq [{:keys [id]} (:stories iter-data)]
+                            (when id
                               (let [r (p/shell {:dir resolved :out :string :err :string :continue true}
-                                               "bd" "show" bead-id)]
+                                               "bd" "show" id)]
                                 (should= 0 (:exit r))))))))))))))))))
 
 ;; ── Spawn Config ──

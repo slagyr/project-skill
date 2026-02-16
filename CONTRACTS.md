@@ -42,15 +42,18 @@ This document defines the invariants that the orchestrator, worker, and file for
 - **Notification mentions:** `:notification-mentions` maps event keywords to vectors of mention strings (e.g., `{:blocker ["<@123>" "<@456>"]}`). Single strings are normalized to vectors on parse.
 - **No markdown fallback:** `PROJECT.md` is not read as config; use `braids migrate` to convert. Legacy `project.edn` is still read as fallback.
 
-### 1.3 ITERATION.md
+### 1.3 iteration.edn
 
-- **Location:** `<project-root>/.braids/iterations/<N>/ITERATION.md`
-- **Required fields:** Status
-- **Valid statuses:** `planning`, `active`, `complete`
+- **Location:** `<project-root>/.braids/iterations/<N>/iteration.edn`
+- **Format:** EDN map with keys `:number`, `:status`, `:stories`, `:notes`
+- **Required fields:** `:number`, `:status`
+- **Valid statuses:** `:planning`, `:active`, `:complete`
 - **At most one active iteration per project** at any time
-- **Immutability:** Once status is `complete`, the iteration directory must not be modified
-- **Stories list:** Each entry is a bead id followed by a colon and title
-- **Optional sections:** Guardrails, Notes (default: none)
+- **Immutability:** Once status is `:complete`, the iteration directory must not be modified
+- **Stories list:** Vector of maps, each with `:id` and `:title` keys
+- **Notes:** Vector of strings (default: empty)
+- **Defaults when missing:** `:status` → `:planning`, `:stories` → `[]`, `:notes` → `[]`
+- **No markdown fallback:** `ITERATION.md` is not read; use `braids migrate` to convert
 
 ### 1.4 Deliverable Files
 
@@ -116,7 +119,7 @@ Workers must read context in this order before any work:
 1. `.braids/config.edn`
 2. Workspace AGENTS.md (`~/.openclaw/workspace/AGENTS.md`)
 3. Project AGENTS.md (goal, guardrails, conventions)
-4. ITERATION.md for the assigned iteration
+4. iteration.edn for the assigned iteration
 
 ### 3.2 Claim Before Work
 A worker must successfully `bd update <bead-id> --claim` before starting any work. If the claim fails, stop immediately.
@@ -134,13 +137,13 @@ Beads are closed only after the deliverable is written. Sequence: work → write
 Every bead closure includes a git commit. Format: `"<summary> (<bead-id>)"`.
 
 ### 3.7 Iteration Completion Check
-After closing a bead, the worker checks if the iteration is complete (no open beads remain). If so, the worker updates ITERATION.md status to `complete`, sends the iteration-complete notification, and commits.
+After closing a bead, the worker checks if the iteration is complete (no open beads remain). If so, the worker updates iteration.edn status to `:complete`, sends the iteration-complete notification, and commits.
 
 ### 3.8 Notification Discipline
 Workers only send notifications for events that are `on` in the project's Notifications table. If `Channel` is missing, all notifications are silently skipped. When mentions are configured for an event, include all mention strings from the vector.
 
 ### 3.9 Format Tolerance
-Workers never fail due to missing or unknown fields in config.edn or ITERATION.md. Missing fields use defaults; unknown fields are ignored.
+Workers never fail due to missing or unknown fields in config.edn or iteration.edn. Missing fields use defaults; unknown fields are ignored.
 
 ### 3.10 Error Escalation
 - Recoverable errors: retry once, try alternatives, then escalate
@@ -166,14 +169,14 @@ Workers with `ask-first` autonomy must confirm via Channel before executing. `fu
 - What to work on → `bd ready` (not manual lists)
 - Project config → config.edn (not SKILL.md at runtime)
 - Goal/guardrails → project AGENTS.md
-- Iteration state → ITERATION.md
+- Iteration state → iteration.edn
 - Bead state → `bd` commands
 
 ### 4.4 Git as Transport
 All project work is committed and pushed. Work is not complete until `git push` succeeds.
 
 ### 4.5 Completed Iterations Are Immutable
-No modifications to iterations with `Status: complete` — files, ITERATION.md, and deliverables are all frozen.
+No modifications to iterations with `:status :complete` — files, iteration.edn, and deliverables are all frozen.
 
 ### 4.6 Bead Lifecycle
 Valid bead state transitions: `open` → `in_progress` (claim) → `closed` | `blocked`. Blocked beads can be reopened. Closed beads are final.

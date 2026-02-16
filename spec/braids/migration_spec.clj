@@ -1,6 +1,7 @@
 (ns braids.migration-spec
   (:require [speclj.core :refer :all]
-            [braids.migration :as mig]))
+            [braids.migration :as mig]
+            [braids.iteration :as iter]))
 
 (describe "braids.migration"
 

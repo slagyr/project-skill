@@ -33,8 +33,13 @@
 
   (spit (str test-project "/AGENTS.md") "# Test Project AGENTS.md\nRead worker.md for instructions.\n\n## Goal\n\nTest project for simulation tests.\n\n## Guardrails\n\n- This is a test project\n")
 
-  (spit (str test-project "/.braids/iterations/001/ITERATION.md")
-    "# Iteration 001\n\n- **Status:** active\n\n## Stories\n- test-sim-aaa: First test bead\n- test-sim-bbb: Second test bead (depends on aaa)\n- test-sim-ccc: Third test bead (independent)\n")
+  (spit (str test-project "/.braids/iterations/001/iteration.edn")
+    (pr-str {:number 1
+             :status :active
+             :stories [{:id "test-sim-aaa" :title "First test bead"}
+                       {:id "test-sim-bbb" :title "Second test bead (depends on aaa)"}
+                       {:id "test-sim-ccc" :title "Third test bead (independent)"}]
+             :notes []}))
 
   (spit (str test-tmp "/registry.edn")
     (pr-str {:projects [{:slug "test-sim-project" :status :active :priority :high :path test-project}]})))
@@ -75,31 +80,36 @@
 (describe "Scenario 2: Iteration Lifecycle"
   (before-all (setup-test-project!))
 
-  (it "ITERATION.md has Status"
-    (should (re-find #"(?i)Status:" (slurp (str test-project "/.braids/iterations/001/ITERATION.md")))))
-  (it "ITERATION.md has Stories section"
-    (should-contain "## Stories" (slurp (str test-project "/.braids/iterations/001/ITERATION.md"))))
+  (it "iteration.edn is valid EDN"
+    (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/iterations/001/iteration.edn")))]
+      (should (map? parsed))
+      (should= :active (:status parsed))))
+  (it "iteration.edn has stories"
+    (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/iterations/001/iteration.edn")))]
+      (should (seq (:stories parsed)))))
   (it "iteration status is active"
-    (should-contain "active" (slurp (str test-project "/.braids/iterations/001/ITERATION.md"))))
+    (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/iterations/001/iteration.edn")))]
+      (should= :active (:status parsed))))
 
   (it "at most one active iteration"
     (fs/create-dirs (str test-project "/.braids/iterations/002"))
-    (spit (str test-project "/.braids/iterations/002/ITERATION.md")
-      "# Iteration 002\n- **Status:** planning\n## Stories\n- test-sim-ddd: Future bead\n")
-    (let [active-count (->> (fs/glob test-project ".braids/iterations/*/ITERATION.md")
-                            (map #(slurp (str %)))
-                            (filter #(re-find #"Status:.*active" %))
+    (spit (str test-project "/.braids/iterations/002/iteration.edn")
+      (pr-str {:number 2 :status :planning :stories [{:id "test-sim-ddd" :title "Future bead"}] :notes []}))
+    (let [active-count (->> (fs/glob test-project ".braids/iterations/*/iteration.edn")
+                            (map #(clojure.edn/read-string (slurp (str %))))
+                            (filter #(= :active (:status %)))
                             count)]
       (should (<= active-count 1))))
 
   (it "completed iteration does not require RETRO.md"
     (fs/create-dirs (str test-project "/.braids/iterations/000"))
-    (spit (str test-project "/.braids/iterations/000/ITERATION.md")
-      "# Iteration 000\n- **Status:** complete\n## Stories\n- test-sim-zzz: Completed bead\n")
+    (spit (str test-project "/.braids/iterations/000/iteration.edn")
+      (pr-str {:number 0 :status :complete :stories [{:id "test-sim-zzz" :title "Completed bead"}] :notes []}))
     (should-not (fs/exists? (str test-project "/.braids/iterations/000/RETRO.md"))))
 
   (it "completed iteration status is complete"
-    (should-contain "complete" (slurp (str test-project "/.braids/iterations/000/ITERATION.md")))))
+    (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/iterations/000/iteration.edn")))]
+      (should= :complete (:status parsed)))))
 
 ;; ── Scenario 3: Deliverable Naming ──
 
@@ -157,11 +167,9 @@
     (should (fs/exists? (str test-project "/.braids/config.edn"))))
   (it "Project AGENTS.md exists (context step 3)"
     (should (fs/exists? (str test-project "/AGENTS.md"))))
-  (it "ITERATION.md exists (context step 4)"
-    (should (fs/exists? (str test-project "/.braids/iterations/001/ITERATION.md"))))
+  (it "iteration.edn exists (context step 4)"
+    (should (fs/exists? (str test-project "/.braids/iterations/001/iteration.edn"))))
   (it "Workspace AGENTS.md exists (context step 2 - simulated)"
-    ;; In production, this is ~/.openclaw/workspace/AGENTS.md
-    ;; For portability, we verify the contract requires it but don't check the installed path
     (should-contain "Workspace AGENTS.md" contracts)))
 
 ;; ── Scenario 6: Spawn Message Format ──
@@ -284,7 +292,7 @@
 (describe "Scenario 16: Iteration Completion (simplified)"
   (it "worker.md documents simple iteration completion"
     (let [worker (slurp (str project-root "/braids/references/worker.md"))]
-      (should (re-find #"Update ITERATION.md status to.*complete" worker))))
+      (should (re-find #"Update iteration\.edn status to.*:complete" worker))))
   (it "no .completing lock mechanism in worker.md"
     (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should-not (str/includes? worker ".completing"))))

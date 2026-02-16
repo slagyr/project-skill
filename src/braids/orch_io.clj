@@ -1,21 +1,23 @@
 (ns braids.orch-io
   (:require [babashka.fs :as fs]
+            [clojure.edn :as edn]
             [clojure.string :as str]
             [braids.orch :as orch]
             [braids.ready-io :as rio]))
 
-(defn parse-iteration-status
-  "Extract the status value from ITERATION.md content.
-   Tolerates multiple formats: 'Status: active', '- **Status:** active', '**Status:** active', etc.
+(defn parse-iteration-status-edn
+  "Extract the status from iteration.edn content string.
    Returns the status string (lowercase) or nil."
   [content]
-  (when-let [m (re-find #"(?i)\*{0,2}Status:\*{0,2}\s*(\w+)" content)]
-    (str/lower-case (second m))))
+  (try
+    (when-let [parsed (edn/read-string content)]
+      (when-let [s (:status parsed)]
+        (name s)))
+    (catch Exception _ nil)))
 
 (defn find-active-iteration
-  "Scan .braids/iterations/*/ITERATION.md for one with Status: active.
-   Returns the iteration number (directory name) or nil.
-   Tolerates markdown formatting variations in the Status field."
+  "Scan .braids/iterations/*/iteration.edn for one with :status :active.
+   Returns the iteration number (directory name) or nil."
   [project-path]
   (let [path (if (str/starts-with? project-path "~/")
                (str (fs/expand-home "~") "/" (subs project-path 2))
@@ -26,10 +28,10 @@
                    :else (str path "/.braids/iterations"))]
     (when (fs/exists? iter-dir)
       (some (fn [dir]
-              (let [iter-md (str dir "/ITERATION.md")]
-                (when (fs/exists? iter-md)
-                  (let [content (slurp iter-md)]
-                    (when (= "active" (parse-iteration-status content))
+              (let [iter-edn (str dir "/iteration.edn")]
+                (when (fs/exists? iter-edn)
+                  (let [content (slurp iter-edn)]
+                    (when (= "active" (parse-iteration-status-edn content))
                       (fs/file-name dir))))))
             (sort (fs/list-dir iter-dir))))))
 

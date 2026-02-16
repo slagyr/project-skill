@@ -58,7 +58,7 @@
             project-dir (str @tmp-dir "/test-new-proj")]
         (should= 0 (:exit result))
         (should (fs/exists? (str project-dir "/.braids/config.edn")))
-        (should (fs/exists? (str project-dir "/.braids/iterations/001/ITERATION.md")))
+        (should (fs/exists? (str project-dir "/.braids/iterations/001/iteration.edn")))
         (should (fs/exists? (str project-dir "/AGENTS.md")))
         (should (fs/exists? (str project-dir "/.git")))
         ;; Verify config.edn content

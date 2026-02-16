@@ -61,7 +61,7 @@
         "**If you're here on your own** (manual session, human asked you to help, etc.):\n"
         "1. Read `.braids/config.edn` — understand the project settings\n"
         "2. Read this file (AGENTS.md) — for goals, guardrails, and conventions\n"
-        "3. Find the active iteration: look in `.braids/iterations/*/ITERATION.md` for `Status: active`\n"
+        "3. Find the active iteration: look in `.braids/iterations/*/iteration.edn` for `:status :active`\n"
         "4. Run `bd ready` to see available work\n"
         "5. Pick a bead, then follow the worker workflow: `~/.openclaw/skills/braids/references/worker.md`\n\n"
         "## Quick Reference\n\n"

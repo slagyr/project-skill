@@ -12,14 +12,14 @@ User requests migration via the project's Channel (e.g., "update to latest skill
 
 Read `~/.openclaw/skills/braids/SKILL.md` and extract the canonical formats for:
 - `.project/config.edn` (fields, structure, notifications table)
-- `ITERATION.md` (fields, structure)
+- `iteration.edn` (fields, structure)
 - Directory layout conventions
 
 ### 2. Read Project Files
 
 Read the project's existing:
 - `.project/config.edn`
-- Active `ITERATION.md` (current iteration)
+- Active `iteration.edn` (current iteration)
 - Any completed iteration files (for reference, but these are immutable)
 
 ### 3. Diff and Identify Gaps
@@ -28,7 +28,7 @@ Compare the project's files against the canonical format. Common migrations:
 - Missing fields in `.project/config.edn` (e.g., new settings added to the skill)
 - Changed field names or structure
 - Missing Notifications table
-- ITERATION.md format changes
+- iteration.edn format changes
 - Directory layout changes
 
 ### 4. Report and Migrate
@@ -82,7 +82,7 @@ git add -A && git commit -m "Migrate to .project/ directory layout"
 **Changes applied:**
 - Added `MaxWorkers: 1` to `.project/config.edn` (new field, default value)
 - Added Notifications table to `.project/config.edn` (all events set to `on`)
-- Updated ITERATION.md to include `## Guardrails` section (empty)
+- Updated iteration.edn to include `## Guardrails` section (empty)
 
 **No changes needed:**
 - Directory layout ✓

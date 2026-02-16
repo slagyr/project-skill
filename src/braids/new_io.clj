@@ -59,9 +59,9 @@
                  (fs/create-dirs (str project-dir "/.braids/iterations/001"))
                  ;; Write config.edn
                  (spit (str project-dir "/.braids/config.edn") (pr-str config))
-                 ;; Write ITERATION.md
-                 (spit (str project-dir "/.braids/iterations/001/ITERATION.md")
-                       "# Iteration 001\n\nStatus: planning\n\n## Stories\n\n## Guardrails\n\n## Notes\n")
+                 ;; Write iteration.edn
+                 (spit (str project-dir "/.braids/iterations/001/iteration.edn")
+                       (pr-str {:number 1 :status :planning :stories [] :notes []}))
                  ;; Write AGENTS.md
                  (spit (str project-dir "/AGENTS.md") agents-md)
                  ;; Init git

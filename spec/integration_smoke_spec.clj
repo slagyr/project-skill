@@ -12,14 +12,8 @@
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
 
-(defn extract-bead-ids [iter-md-content]
-  (->> (str/split-lines iter-md-content)
-       (filter #(re-find #"^- [a-z]" %))
-       (remove #(str/includes? % "**"))
-       (filter #(str/includes? % ":"))
-       (map #(second (re-find #"^- ([^:]+):" %)))
-       (map str/trim)
-       (remove str/blank?)))
+(defn extract-bead-ids-edn [iter-data]
+  (mapv :id (:stories iter-data)))
 
 (defn get-bead-status [project-dir bead-id]
   (try
@@ -34,12 +28,11 @@
 (defn find-deliverable [iter-dir bead-id]
   (let [suffix (bead-suffix bead-id)
         files (fs/glob iter-dir "*.md")
-        names (map #(str (fs/file-name %)) files)
-        filtered (remove #(#{"ITERATION.md"} %) names)]
+        names (map #(str (fs/file-name %)) files)]
     (some (fn [n]
             (or (str/starts-with? n (str suffix "-"))
                 (= n (str bead-id ".md"))))
-          filtered)))
+          names)))
 
 (defn git-has-commit? [project-dir bead-id]
   (try
@@ -57,8 +50,11 @@
 (defn resolve-config-edn [resolved]
   (cond
     (fs/exists? (str resolved "/.braids/config.edn")) (str resolved "/.braids/config.edn")
-    (fs/exists? (str resolved "/.braids/config.edn")) (str resolved "/.braids/config.edn")
     :else nil))
+
+(defn load-iteration-edn [path]
+  (when (fs/exists? path)
+    (try (clojure.edn/read-string (slurp path)) (catch Exception _ nil))))
 
 ;; ── Integration tests per project ──
 
@@ -96,15 +92,14 @@
                 (when (fs/directory? iterations-dir)
                   (doseq [iter-dir (sort (fs/list-dir iterations-dir))]
                     (let [iter-name (str (fs/file-name iter-dir))
-                          iter-md (str iter-dir "/ITERATION.md")]
-                      (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-md))
-                        (let [icontent (slurp iter-md)
-                              iter-status (some-> (re-find #"(?i)Status:\*\*\s*(.*)|Status:\s*(.*)" icontent)
-                                                  rest (->> (remove nil?) first str/trim))]
+                          iter-edn-path (str iter-dir "/iteration.edn")]
+                      (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-edn-path))
+                        (let [iter-data (load-iteration-edn iter-edn-path)
+                              iter-status (when iter-data (name (:status iter-data)))]
 
                           ;; Completed iteration checks
                           (when (= iter-status "complete")
-                            (let [bead-ids (extract-bead-ids icontent)]
+                            (let [bead-ids (extract-bead-ids-edn iter-data)]
                               (doseq [bid bead-ids]
                                 (should (find-deliverable iter-dir bid))
                                 (let [bd-status (get-bead-status resolved bid)]
@@ -114,7 +109,7 @@
 
                           ;; Active iteration checks
                           (when (= iter-status "active")
-                            (let [bead-ids (extract-bead-ids icontent)
+                            (let [bead-ids (extract-bead-ids-edn iter-data)
                                   statuses (map (fn [bid] [bid (get-bead-status resolved bid)]) bead-ids)
                                   closed-count (count (filter #(= "CLOSED" (second %)) statuses))
                                   total-count (count bead-ids)]
@@ -131,9 +126,9 @@
             (it "at most one active iteration"
               (let [idir (resolve-iterations-dir resolved)
                     active-count (if (fs/directory? idir)
-                                   (->> (fs/glob idir "*/ITERATION.md")
-                                        (map #(slurp (str %)))
-                                        (filter #(re-find #"Status:.*active" %))
+                                   (->> (fs/glob idir "*/iteration.edn")
+                                        (map #(load-iteration-edn (str %)))
+                                        (filter #(= :active (:status %)))
                                         count)
                                    0)]
                 (should (<= active-count 1))))
@@ -144,19 +139,18 @@
                 (when (fs/directory? idir)
                   (doseq [iter-dir (sort (fs/list-dir idir))]
                     (let [iter-name (str (fs/file-name iter-dir))
-                          iter-md (str iter-dir "/ITERATION.md")]
-                      (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-md))
-                        (let [icontent (slurp iter-md)
-                              bead-ids (extract-bead-ids icontent)
+                          iter-edn-path (str iter-dir "/iteration.edn")]
+                      (when (and (fs/directory? iter-dir) (re-matches #"\d{3}" iter-name) (fs/exists? iter-edn-path))
+                        (let [iter-data (load-iteration-edn iter-edn-path)
+                              bead-ids (extract-bead-ids-edn iter-data)
                               suffixes (set (map bead-suffix bead-ids))
                               full-ids (set bead-ids)]
                           (doseq [f (fs/glob iter-dir "*.md")]
-                            (let [fname (str (fs/file-name f))]
-                              (when-not (#{"ITERATION.md"} fname)
-                                (let [prefix (first (str/split fname #"-"))
-                                      no-ext (str/replace fname #"\.md$" "")]
-                                  (should (or (contains? suffixes prefix)
-                                              (contains? full-ids no-ext)))))))))))))))))))
+                            (let [fname (str (fs/file-name f))
+                                  prefix (first (str/split fname #"-"))
+                                  no-ext (str/replace fname #"\.md$" "")]
+                              (should (or (contains? suffixes prefix)
+                                          (contains? full-ids no-ext)))))))))))))))))
 
   ;; ── Cross-project checks (skipped if no registry) ──
 

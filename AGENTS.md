@@ -15,7 +15,7 @@ This project is managed by the **braids** skill. Config: `.braids/config.edn`. G
 **If you're here on your own** (manual session, human asked you to help, etc.):
 1. Read `.braids/config.edn` — understand the project settings
 2. Read this file (AGENTS.md) — for goals, guardrails, and conventions
-3. Find the active iteration: look in `.braids/iterations/*/ITERATION.md` for `Status: active`
+3. Find the active iteration: look in `.braids/iterations/*/iteration.edn` for `:status :active`
 4. Run `bd ready` to see available work
 5. Pick a bead, then follow the worker workflow: `~/.openclaw/skills/braids/references/worker.md`
    (or online: https://raw.githubusercontent.com/slagyr/braids/refs/heads/main/braids/references/worker.md)

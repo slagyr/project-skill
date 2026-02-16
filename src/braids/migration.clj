@@ -1,7 +1,8 @@
 (ns braids.migration
   (:require [clojure.string :as str]
             [braids.project-config :as pc]
-            [braids.registry :as registry]))
+            [braids.registry :as registry]
+            [braids.iteration :as iter]))
 
 (defn- parse-md-table
   "Parses a markdown table into a vector of maps. Expects header row, separator, then data rows."
@@ -156,8 +157,43 @@
                   (swap! actions conj {:type :write-config-edn
                                        :path config-edn-path
                                        :slug slug
-                                       :content edn-str}))))))))
+                                       :content edn-str})))))))
+
+      ;; Plan iteration.edn migrations
+      (let [iter-base (str path "/.braids/iterations")
+            legacy-iter-base (str path "/.project/iterations")
+            iter-dir (cond
+                       (file-exists? iter-base) iter-base
+                       (file-exists? legacy-iter-base) legacy-iter-base
+                       :else iter-base)]
+        (when (file-exists? iter-dir)
+          (doseq [iter-num (or (:list-dirs read-file) [])]
+            ;; list-dirs not available in pure fn; use convention instead
+            nil)))
+
+      ;; Iteration migration uses a separate entry point (see plan-iteration-migrations)
+      )
     @actions))
+
+(defn plan-iteration-migrations
+  "Plans iteration.edn migrations for a single project. Takes:
+   :project-path, :iteration-dirs (seq of dir names like [\"001\" \"002\"]),
+   :read-file, :file-exists?
+   Returns a vector of action maps."
+  [{:keys [project-path iteration-dirs read-file file-exists?]}]
+  (let [iter-base (str project-path "/.braids/iterations")]
+    (vec (for [dir-name iteration-dirs
+               :let [iter-edn-path (str iter-base "/" dir-name "/iteration.edn")
+                     iter-md-path (str iter-base "/" dir-name "/ITERATION.md")]
+               :when (and (not (file-exists? iter-edn-path))
+                          (file-exists? iter-md-path))]
+           (let [md-content (read-file iter-md-path)
+                 parsed (iter/migrate-iteration-md md-content)
+                 edn-str (iter/iteration->edn-string parsed)]
+             {:type :write-iteration-edn
+              :path iter-edn-path
+              :iteration dir-name
+              :content edn-str})))))
 
 (defn format-migration-report
   "Formats a human-readable report of migration actions."
@@ -166,9 +202,10 @@
     "Nothing to migrate — all files are already in EDN format."
     (str "Migration plan:\n"
          (str/join "\n"
-           (for [{:keys [type path slug]} actions]
+           (for [{:keys [type path slug iteration]} actions]
              (case type
                :write-registry-edn (str "  ✓ Write registry.edn → " path)
                :write-config-edn (str "  ✓ Write config.edn for " slug " → " path)
+               :write-iteration-edn (str "  ✓ Write iteration.edn for iteration " iteration " → " path)
                (str "  ? Unknown action: " type))))
          "\n")))

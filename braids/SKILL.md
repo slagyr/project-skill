@@ -35,7 +35,7 @@ $BRAIDS_HOME/
     AGENTS.md                    # Goal, guardrails, conventions (prose)
       iterations/
         001/
-          ITERATION.md           # Status, stories, iteration guardrails
+          iteration.edn          # Status, stories, notes (EDN)
           <id-suffix>-<name>.md # Deliverable per story (e.g. w9g-extract-worker.md)
           assets/                # Screenshots, artifacts
         002/
@@ -122,25 +122,24 @@ Example:
 
 Workers should include the mention in the notification message when the Notify value contains a `mention` directive.
 
-## ITERATION.md Format
+## iteration.edn Format
 
-**Location:** `.braids/iterations/<N>/ITERATION.md`
+**Location:** `.braids/iterations/<N>/iteration.edn`
 
-```markdown
-# Iteration <N>
-
-- **Status:** planning | active | complete
-
-## Stories
-- bd-xxxx: <title>
-- bd-yyyy: <title>
-
-## Guardrails
-<Iteration-specific constraints>
-
-## Notes
-<Any relevant context>
+```edn
+{:number "001"
+ :status :active
+ :stories [{:id "bead-id" :title "Story title"}
+           {:id "bead-id-2" :title "Another story"}]
+ :guardrails ["Constraint 1" "Constraint 2"]
+ :notes ["Context or theme notes"]}
 ```
+
+**Required keys:** `:number`, `:status`, `:stories`
+
+**Valid statuses:** `:planning`, `:active`, `:complete`
+
+**Defaults when missing:** `:guardrails` → `[]`, `:notes` → `[]`
 
 - **planning**: Stories are being defined; workers must not pick up tasks yet
 - **active**: Ready for work; workers claim and complete tasks from this iteration
@@ -204,9 +203,9 @@ All file changes — SKILL.md, worker.md, orchestrator.md, config.edn, CONTRACTS
    - Read `.braids/config.edn` — note the `MaxWorkers` setting (default 1)
    - Check running sessions (via `sessions_list`) for workers with label prefix `project:<slug>`
    - **If running workers >= MaxWorkers, skip this project**
-   - Read ITERATION.md for the ordered story list
+   - Read iteration.edn for the ordered story list
    - Run `bd ready` to find unblocked tasks
-   - **Prioritize work in ITERATION.md story order first**, then by bead priority for non-iteration tasks
+   - **Prioritize work in iteration.edn story order first**, then by bead priority for non-iteration tasks
    - Each task: claim (`bd update <id> --claim`), do work, write deliverable to `.braids/iterations/<N>/<id-suffix>-<descriptive-name>.md`, close (`bd update <id> -s closed`)
    - Commit after each completed story
 3. Notify the project's Channel when all stories are done, no ready beads remain, or a blocker is hit
@@ -227,9 +226,9 @@ Notify the project's Channel when creating a REVIEW.md.
 When the last bead in an iteration closes, the worker auto-generates `RETRO.md` (see `references/worker.md` §8) before marking the iteration complete. This retrospective is available for the next check-in.
 
 After check-in:
-1. Mark current iteration complete in ITERATION.md (if agreed)
+1. Mark current iteration complete in iteration.edn (if agreed)
 2. Create next iteration directory
-3. Write new ITERATION.md with stories from review discussion
+3. Write new iteration.edn with stories from review discussion
 4. Create beads tasks for new stories
 
 ## Beads Quick Reference
@@ -333,11 +332,11 @@ Workers handle errors via a structured escalation path (see `references/worker.m
 
 ## Format Compatibility
 
-When the skill format evolves, existing projects may have stale `.braids/config.edn` or ITERATION.md files. The system handles this gracefully at two levels:
+When the skill format evolves, existing projects may have stale `.braids/config.edn` or iteration.edn files. The system handles this gracefully at two levels:
 
 ### Worker Tolerance (Automatic)
 
-Workers and orchestrators **must be tolerant of older formats**. When reading `.braids/config.edn` or ITERATION.md:
+Workers and orchestrators **must be tolerant of older formats**. When reading `.braids/config.edn` or iteration.edn:
 
 - **Legacy fallback:** If `.braids/config.edn` doesn't exist, check for `.braids/project.edn` (legacy name). No markdown config fallback. If `.braids/iterations/` doesn't exist, check `iterations/` at root. This provides backwards compatibility during migration.
 
@@ -348,12 +347,12 @@ Workers and orchestrators **must be tolerant of older formats**. When reading `.
   - `Checkin` → `on-demand`
   - `Channel` → (none — skip notifications if missing)
   - `Notifications` table → all events `on`
-  - ITERATION.md `Guardrails` section → (none — no extra constraints)
-  - ITERATION.md `Notes` section → (none)
+  - iteration.edn `Guardrails` section → (none — no extra constraints)
+  - iteration.edn `Notes` section → (none)
 - **Unknown fields → ignore.** Projects may have custom fields. Don't error on them.
 - **Old field names → treat as missing.** If a field was renamed, treat the old name as absent and apply the default. Don't try to map old names automatically.
 
-This means workers never crash or block due to a missing field in config.edn or ITERATION.md. They degrade gracefully.
+This means workers never crash or block due to a missing field in config.edn or iteration.edn. They degrade gracefully.
 
 ### Skill Migration (User-Triggered)
 
@@ -371,7 +370,7 @@ Breaking changes should be rare. Prefer additive, backwards-compatible changes w
 
 ## Skill Migration
 
-When the skill format evolves (e.g., config.edn fields change, ITERATION.md structure updates), existing projects need migration. This is **user-triggered, not automatic**.
+When the skill format evolves (e.g., config.edn fields change, iteration.edn structure updates), existing projects need migration. This is **user-triggered, not automatic**.
 
 ### How It Works
 

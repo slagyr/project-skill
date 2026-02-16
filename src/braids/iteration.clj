@@ -1,6 +1,43 @@
 (ns braids.iteration
   (:require [clojure.string :as str]
+            [clojure.edn :as edn]
             [cheshire.core :as json]))
+
+(def iteration-defaults
+  {:status :planning
+   :stories []
+   :notes []
+   :guardrails []})
+
+(defn parse-iteration-edn
+  "Parse an iteration.edn string into a map with defaults applied."
+  [edn-str]
+  (let [raw (edn/read-string edn-str)]
+    (merge iteration-defaults raw)))
+
+(defn validate-iteration
+  "Validate an iteration map. Returns a vector of error strings (empty if valid)."
+  [{:keys [number status stories]}]
+  (let [errors (atom [])]
+    (when-not number (swap! errors conj "Missing :number"))
+    (when-not status (swap! errors conj "Missing :status"))
+    (when (and status (not (#{:planning :active :complete} status)))
+      (swap! errors conj (str "Invalid status: " status)))
+    (when-not (vector? stories)
+      (swap! errors conj "Missing or invalid :stories"))
+    @errors))
+
+(defn iteration->edn-string
+  "Serialize iteration data to an EDN string."
+  [data]
+  (pr-str (select-keys data [:number :status :stories :guardrails :notes])))
+
+(defn story-ids
+  "Extract story ids from iteration data."
+  [iteration]
+  (mapv :id (:stories iteration)))
+
+;; --- Legacy markdown parsing (needed for migration) ---
 
 (defn parse-iteration-number [content]
   (when-let [m (re-find #"#\s*Iteration\s+(\S+)" content)]
@@ -11,8 +48,7 @@
     (str/lower-case (second m))))
 
 (defn parse-iteration-stories
-  "Extract story ids and titles from ITERATION.md content.
-   Stories are lines like: - bead-id: Title text"
+  "Extract story ids and titles from ITERATION.md content."
   [content]
   (let [lines (str/split-lines content)
         in-stories (atom false)
@@ -29,6 +65,40 @@
         (when-let [m (re-find #"-\s+(\S+):\s+(.*)" line)]
           (swap! results conj {:id (second m) :title (str/trim (nth m 2))}))))
     @results))
+
+(defn- parse-section-items
+  "Parse items from a markdown section (## SectionName) as a list of strings."
+  [content section-name]
+  (let [lines (str/split-lines content)
+        in-section (atom false)
+        results (atom [])]
+    (doseq [line lines]
+      (cond
+        (re-matches (re-pattern (str "##\\s+" section-name "\\s*")) line)
+        (reset! in-section true)
+
+        (and @in-section (re-matches #"##\s+.*" line))
+        (reset! in-section false)
+
+        (and @in-section (re-find #"^-\s+(.*)" line))
+        (when-let [m (re-find #"^-\s+(.*)" line)]
+          (swap! results conj (str/trim (second m))))))
+    @results))
+
+(defn migrate-iteration-md
+  "Convert ITERATION.md content to an iteration EDN map."
+  [md-content]
+  (let [number (parse-iteration-number md-content)
+        status (keyword (or (parse-iteration-status md-content) "planning"))
+        stories (parse-iteration-stories md-content)
+        guardrails (parse-section-items md-content "Guardrails")
+        notes (parse-section-items md-content "Notes")
+        result {:number number :status status :stories stories}]
+    (cond-> result
+      (seq guardrails) (assoc :guardrails guardrails)
+      (seq notes) (assoc :notes notes))))
+
+;; --- Annotation and formatting ---
 
 (defn annotate-stories
   "Annotate stories with status, priority, and deps from bead data.

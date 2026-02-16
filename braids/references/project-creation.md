@@ -109,18 +109,13 @@ If the template doesn't exist, write the standard AGENTS.md inline (see `referen
 mkdir -p "$PROJECT_DIR/.braids/iterations/001"
 ```
 
-Write `.braids/iterations/001/ITERATION.md`:
+Write `.braids/iterations/001/iteration.edn`:
 
-```markdown
-# Iteration 001
-
-- **Status:** planning
-
-## Stories
-
-## Guardrails
-
-## Notes
+```clojure
+{:number "001"
+ :status :planning
+ :stories []
+ :notes []}
 ```
 
 ### 8. Optionally Seed Stories
@@ -133,7 +128,7 @@ bd create "Story title"
 # repeat for each story
 ```
 
-Then update `.braids/iterations/001/ITERATION.md` to reference them in the Stories section.
+Then update `.braids/iterations/001/iteration.edn` to reference them in the Stories section.
 
 If the human wants to start work immediately, set the iteration status to `active`.
 

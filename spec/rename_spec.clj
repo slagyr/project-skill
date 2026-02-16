@@ -10,9 +10,10 @@
     (and (str/starts-with? rel ".braids/iterations/")
          (let [iter-num (some-> (re-find #"iterations/(\d+)" rel) second)]
            (when iter-num
-             (let [iter-md (str project-root "/.braids/iterations/" iter-num "/ITERATION.md")]
-               (when (fs/exists? iter-md)
-                 (str/includes? (slurp (str iter-md)) "complete"))))))))
+             (let [iter-edn (str project-root "/.braids/iterations/" iter-num "/iteration.edn")]
+               (when (fs/exists? iter-edn)
+                 (let [data (clojure.edn/read-string (slurp iter-edn))]
+                   (= :complete (:status data))))))))))
 
 (defn mutable-files
   "All text files excluding completed iterations, .git, .beads, and this spec."

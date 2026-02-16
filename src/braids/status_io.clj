@@ -3,24 +3,26 @@
             [braids.orch-io :as oio]
             [braids.ready-io :as rio]
             [braids.iteration :as iter]
-            [braids.status :as status]))
+            [braids.status :as status]
+            [babashka.fs :as fs]
+            [clojure.string :as str]))
 
 (defn load-iteration-data
   "Load iteration data for a project: number, status, annotated stories, stats."
   [project-path]
   (let [iter-num (oio/find-active-iteration project-path)]
     (when iter-num
-      (let [path (if (clojure.string/starts-with? project-path "~/")
-                   (str (babashka.fs/expand-home "~") "/" (subs project-path 2))
+      (let [path (if (str/starts-with? project-path "~/")
+                   (str (fs/expand-home "~") "/" (subs project-path 2))
                    project-path)
             iter-dir (cond
-                       (babashka.fs/directory? (str path "/.braids/iterations")) (str path "/.braids/iterations")
-                       (babashka.fs/directory? (str path "/.project/iterations")) (str path "/.project/iterations")
+                       (fs/directory? (str path "/.braids/iterations")) (str path "/.braids/iterations")
+                       (fs/directory? (str path "/.project/iterations")) (str path "/.project/iterations")
                        :else (str path "/.braids/iterations"))
-            iter-md (slurp (str iter-dir "/" iter-num "/ITERATION.md"))
-            number (or (iter/parse-iteration-number iter-md) iter-num)
-            status (or (iter/parse-iteration-status iter-md) "unknown")
-            stories (iter/parse-iteration-stories iter-md)
+            iter-edn (iter/parse-iteration-edn (slurp (str iter-dir "/" iter-num "/iteration.edn")))
+            number (or (:number iter-edn) iter-num)
+            status (name (or (:status iter-edn) :unknown))
+            stories (:stories iter-edn)
             beads (iio/load-all-beads project-path)
             annotated (iter/annotate-stories stories beads)
             stats (iter/completion-stats annotated)]
@@ -43,14 +45,12 @@
         workers (rio/count-workers session-labels)
         dash (status/build-dashboard reg configs iterations workers)]
     (if project-slug
-      ;; Single project detail
       (let [proj (first (filter #(= project-slug (:slug %)) (:projects dash)))]
         (if proj
           (if json?
             (status/format-dashboard-json {:projects [proj]})
             (status/format-project-detail proj))
           (str "Project not found: " project-slug)))
-      ;; Full dashboard
       (if json?
         (status/format-dashboard-json dash)
         (status/format-dashboard dash)))))
