@@ -9,7 +9,8 @@
             [braids.list-io :as list-io]
             [braids.iteration-io :as iter-io]
             [braids.status-io :as status-io]
-            [braids.migration-io :as mig-io]))
+            [braids.migration-io :as mig-io]
+            [braids.new-io :as new-io]))
 
 (def commands
   {"list"      {:command :list      :doc "Show projects from registry"}
@@ -19,6 +20,7 @@
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
    "spawn-msg" {:command :spawn-msg :doc "Emit spawn message for a bead (from orch-tick output)"}
    "migrate"   {:command :migrate   :doc "Migrate markdown configs to EDN format"}
+   "new"       {:command :new       :doc "Create a new project"}
    "help"      {:command :help      :doc "Show this help message"}})
 
 (defn help-text []
@@ -93,6 +95,10 @@
                      (do (println "Usage: braids spawn-msg '<spawn-json>' [--json]")
                          (println "  Pass a spawn entry JSON (from orch-tick output) as argument.")
                          1)))
+      :new (let [args (:args (dispatch args))
+                 result (new-io/run-new args)]
+             (println (:message result))
+             (:exit result))
       :migrate (let [args (:args (dispatch args))
                      dry-run? (some #{"--dry-run"} args)]
                  (let [{:keys [report dry-run?]} (mig-io/run-migrate {:dry-run? dry-run?})]
