@@ -1,11 +1,14 @@
 (ns braids.core
   (:require [clojure.string :as str]
             [braids.ready :as ready]
-            [braids.ready-io :as ready-io]))
+            [braids.ready-io :as ready-io]
+            [braids.orch :as orch]
+            [braids.orch-io :as orch-io]))
 
 (def commands
-  {"ready" {:command :ready :doc "List beads ready to work"}
-   "help"  {:command :help  :doc "Show this help message"}})
+  {"ready"     {:command :ready     :doc "List beads ready to work"}
+   "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
+   "help"      {:command :help      :doc "Show this help message"}})
 
 (defn help-text []
   (str/join "\n"
@@ -46,5 +49,8 @@
       :ready (let [result (ready-io/gather-and-compute)]
                (println (ready/format-ready-output result))
                0)
+      :orch-tick (let [result (orch-io/gather-and-tick)]
+                   (println (orch/format-tick-json result))
+                   0)
       ;; Default for unimplemented commands
       (do (println (str "Command '" (name command) "' not yet implemented.")) 0))))
