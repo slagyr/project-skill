@@ -1,6 +1,6 @@
 # Iteration 011: Config & Install
 
-**Status:** active
+Status: complete
 **Theme:** Configuration management and streamlined installation
 
 ## Stories
