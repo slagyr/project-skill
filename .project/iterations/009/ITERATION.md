@@ -1,6 +1,6 @@
 # Iteration 009
 
-Status: active
+Status: complete
 
 ## Stories
 - projects-skill-98r: braids list: show projects from registry
