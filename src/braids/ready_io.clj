@@ -5,6 +5,7 @@
             [clojure.string :as str]
             [braids.migration :as migration]
             [braids.project-config :as pc]
+            [braids.config-io :as config-io]
             [braids.ready :as ready]
             [braids.registry :as registry]))
 
@@ -15,9 +16,7 @@
   (str (fs/expand-home "~/.openclaw/braids")))
 
 (defn resolve-braids-home []
-  ;; Check for registry.edn or registry.md to find BRAIDS_HOME
-  ;; For now, use default
-  default-braids-home)
+  (config-io/resolve-braids-home))
 
 (defn resolve-state-home []
   "Returns the directory for agent infrastructure files (registry, orchestrator state, STATUS).

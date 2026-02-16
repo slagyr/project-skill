@@ -35,30 +35,34 @@
       (let [plan (init/plan-init {:braids-dir "/home/user/.openclaw/braids"
                                    :braids-home "/home/user/Projects"
                                    :registry-path "/home/user/.openclaw/braids/registry.edn"
+                                   :config-path "/home/user/.openclaw/braids/config.edn"
                                    :braids-dir-exists? false
                                    :braids-home-exists? false})]
-        (should= [:create-braids-dir :create-braids-home :create-registry]
+        (should= [:create-braids-dir :create-braids-home :create-registry :save-config]
                  (map :action plan))))
 
     (it "skips existing directories"
       (let [plan (init/plan-init {:braids-dir "/home/user/.openclaw/braids"
                                    :braids-home "/home/user/Projects"
                                    :registry-path "/home/user/.openclaw/braids/registry.edn"
+                                   :config-path "/home/user/.openclaw/braids/config.edn"
                                    :braids-dir-exists? true
                                    :braids-home-exists? true})]
-        (should= [:create-registry]
+        (should= [:create-registry :save-config]
                  (map :action plan))))
 
     (it "includes all necessary paths in plan"
       (let [plan (init/plan-init {:braids-dir "/tmp/braids"
                                    :braids-home "/tmp/projects"
                                    :registry-path "/tmp/braids/registry.edn"
+                                   :config-path "/tmp/braids/config.edn"
                                    :braids-dir-exists? false
                                    :braids-home-exists? false})
             actions (into {} (map (juxt :action identity) plan))]
         (should= "/tmp/braids" (:path (:create-braids-dir actions)))
         (should= "/tmp/projects" (:path (:create-braids-home actions)))
-        (should= "/tmp/braids/registry.edn" (:path (:create-registry actions))))))
+        (should= "/tmp/braids/registry.edn" (:path (:create-registry actions)))
+        (should= "/tmp/braids/config.edn" (:path (:save-config actions))))))
 
   (describe "format-result"
     (it "formats success message"

@@ -9,7 +9,7 @@
     (and registry-exists? (not force?))
     (conj "braids is already initialized (registry.edn exists). Use --force to reinitialize.")))
 
-(defn plan-init [{:keys [braids-dir braids-home registry-path
+(defn plan-init [{:keys [braids-dir braids-home registry-path config-path
                           braids-dir-exists? braids-home-exists?]}]
   (cond-> []
     (not braids-dir-exists?)
@@ -19,7 +19,10 @@
     (conj {:action :create-braids-home :path braids-home})
 
     true
-    (conj {:action :create-registry :path registry-path})))
+    (conj {:action :create-registry :path registry-path})
+
+    true
+    (conj {:action :save-config :path config-path :braids-home braids-home})))
 
 (defn format-result [{:keys [success? errors braids-dir braids-home registry-path actions-taken]}]
   (if success?

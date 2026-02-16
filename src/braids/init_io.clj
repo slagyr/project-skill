@@ -1,6 +1,8 @@
 (ns braids.init-io
   (:require [babashka.fs :as fs]
             [babashka.process :as proc]
+            [braids.config :as config]
+            [braids.config-io :as config-io]
             [braids.init :as init]
             [braids.registry :as registry]))
 
@@ -28,11 +30,12 @@
 
 (defn run-init
   ([args] (run-init args {}))
-  ([args {:keys [braids-dir braids-home registry-path]}]
+  ([args {:keys [braids-dir braids-home registry-path config-path]}]
    (let [params (parse-init-args args)
          braids-dir (or braids-dir (:braids-dir params) default-braids-dir)
          braids-home (or braids-home (:braids-home params) default-braids-home)
          registry-path (or registry-path default-registry-path)
+         config-path (or config-path (str braids-dir "/config.edn"))
          prereq-errors (init/check-prerequisites
                          {:braids-dir-exists? (fs/exists? braids-dir)
                           :registry-exists? (fs/exists? registry-path)
@@ -43,16 +46,19 @@
        (let [plan (init/plan-init {:braids-dir braids-dir
                                     :braids-home braids-home
                                     :registry-path registry-path
+                                    :config-path config-path
                                     :braids-dir-exists? (fs/exists? braids-dir)
                                     :braids-home-exists? (fs/exists? braids-home)})
              actions-taken (atom [])]
          ;; Execute plan
-         (doseq [{:keys [action path]} plan]
+         (doseq [{:keys [action path braids-home] :as step} plan]
            (case action
              :create-braids-dir (do (fs/create-dirs path) (swap! actions-taken conj action))
              :create-braids-home (do (fs/create-dirs path) (swap! actions-taken conj action))
              :create-registry (do (spit path (pr-str {:projects []}))
-                                  (swap! actions-taken conj action))))
+                                  (swap! actions-taken conj action))
+             :save-config (do (config-io/save-config! {:braids-home braids-home} path)
+                              (swap! actions-taken conj action))))
          {:exit 0
           :message (init/format-result {:success? true
                                          :braids-dir braids-dir

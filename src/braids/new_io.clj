@@ -2,11 +2,11 @@
   (:require [clojure.string :as str]
             [babashka.fs :as fs]
             [babashka.process :as proc]
+            [braids.config-io :as config-io]
             [braids.new :as new]
             [braids.registry :as registry]))
 
-(def braids-home (or (System/getenv "BRAIDS_HOME")
-                       (str (System/getProperty "user.home") "/Projects")))
+(def braids-home (config-io/resolve-braids-home))
 
 (def registry-path (str (System/getProperty "user.home") "/.openclaw/braids/registry.edn"))
 
