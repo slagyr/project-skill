@@ -1,0 +1,91 @@
+(ns braids.migration
+  (:require [clojure.string :as str]
+            [braids.project-config :as pc]))
+
+(defn- parse-md-table
+  "Parses a markdown table into a vector of maps. Expects header row, separator, then data rows."
+  [lines]
+  (when (>= (count lines) 2)
+    (let [header (mapv (comp str/lower-case str/trim) (str/split (first lines) #"\|"))
+          header (filterv (complement str/blank?) header)
+          data-lines (drop 2 lines)] ;; skip header + separator
+      (for [line data-lines
+            :let [cells (filterv (complement str/blank?) (mapv str/trim (str/split line #"\|")))]
+            :when (seq cells)]
+        (zipmap (map keyword header) cells)))))
+
+(defn parse-registry-md [md-str]
+  (let [lines (str/split-lines md-str)
+        table-start (some #(when (str/starts-with? (str/trim (second %)) "| Slug") (first %))
+                          (map-indexed vector lines))
+        table-lines (when table-start (drop table-start lines))
+        table-lines (when table-lines
+                      (take-while #(str/starts-with? (str/trim %) "|") table-lines))
+        rows (parse-md-table table-lines)]
+    {:projects (vec (for [row rows]
+                      {:slug (:slug row)
+                       :status (keyword (:status row))
+                       :priority (keyword (:priority row))
+                       :path (:path row)}))}))
+
+(defn- extract-field [lines field-name]
+  (some (fn [line]
+          (let [trimmed (str/trim line)
+                pattern (re-pattern (str "(?i)\\*\\*" field-name ":\\*\\*\\s*(.+)"))]
+            (when-let [m (re-find pattern trimmed)]
+              (str/trim (second m)))))
+        lines))
+
+(defn- extract-title [lines]
+  (some (fn [line]
+          (when-let [m (re-find #"^#\s+(.+)" (str/trim line))]
+            (str/trim (second m))))
+        lines))
+
+(defn- parse-notifications-table [md-str]
+  (let [lines (str/split-lines md-str)
+        ;; Find the Notifications section
+        notif-idx (some #(when (re-find #"(?i)^##\s+Notifications" (str/trim (second %)))
+                           (first %))
+                        (map-indexed vector lines))]
+    (when notif-idx
+      (let [remaining (drop (inc notif-idx) lines)
+            table-lines (drop-while #(not (str/starts-with? (str/trim %) "|")) remaining)
+            table-lines (take-while #(str/starts-with? (str/trim %) "|") table-lines)
+            rows (parse-md-table table-lines)]
+        (reduce (fn [acc row]
+                  (let [event (keyword (:event row))
+                        notify-str (str/trim (or (:notify row) ""))
+                        is-on (str/starts-with? (str/lower-case notify-str) "on")
+                        mention (second (re-find #"mention\s+([^\s\)]+)" notify-str))]
+                    (-> acc
+                        (assoc-in [:notifications event] is-on)
+                        (cond-> mention (assoc-in [:mentions event] mention)))))
+                {:notifications {} :mentions {}}
+                rows)))))
+
+(defn parse-project-md [md-str]
+  (let [lines (str/split-lines md-str)
+        title (extract-title lines)
+        status (some-> (extract-field lines "Status") keyword)
+        priority (some-> (extract-field lines "Priority") keyword)
+        autonomy (some-> (extract-field lines "Autonomy") keyword)
+        checkin (some-> (extract-field lines "Checkin") keyword)
+        channel (extract-field lines "Channel")
+        max-workers (some-> (extract-field lines "MaxWorkers") parse-long)
+        worker-timeout (some-> (extract-field lines "WorkerTimeout") parse-long)
+        notif-data (parse-notifications-table md-str)
+        base (merge pc/defaults
+                    {:name title
+                     :status status
+                     :priority priority
+                     :autonomy autonomy}
+                    (when checkin {:checkin checkin})
+                    (when channel {:channel channel})
+                    (when max-workers {:max-workers max-workers})
+                    (when worker-timeout {:worker-timeout worker-timeout}))]
+    (if notif-data
+      (-> base
+          (assoc :notifications (merge pc/default-notifications (:notifications notif-data)))
+          (cond-> (seq (:mentions notif-data)) (assoc :notification-mentions (:mentions notif-data))))
+      base)))
