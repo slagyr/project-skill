@@ -10,7 +10,8 @@
             [braids.iteration-io :as iter-io]
             [braids.status-io :as status-io]
             [braids.migration-io :as mig-io]
-            [braids.new-io :as new-io]))
+            [braids.new-io :as new-io]
+            [braids.init-io :as init-io]))
 
 (def commands
   {"list"      {:command :list      :doc "Show projects from registry"}
@@ -21,6 +22,7 @@
    "spawn-msg" {:command :spawn-msg :doc "Emit spawn message for a bead (from orch-tick output)"}
    "migrate"   {:command :migrate   :doc "Migrate markdown configs to EDN format"}
    "new"       {:command :new       :doc "Create a new project"}
+   "init"      {:command :init      :doc "First-time setup for braids"}
    "help"      {:command :help      :doc "Show this help message"}})
 
 (defn help-text []
@@ -95,6 +97,10 @@
                      (do (println "Usage: braids spawn-msg '<spawn-json>' [--json]")
                          (println "  Pass a spawn entry JSON (from orch-tick output) as argument.")
                          1)))
+      :init (let [args (:args (dispatch args))
+                 result (init-io/run-init args)]
+              (println (:message result))
+              (:exit result))
       :new (let [args (:args (dispatch args))
                  result (new-io/run-new args)]
              (println (:message result))
