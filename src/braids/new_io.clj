@@ -55,11 +55,11 @@
                      agents-md (new/build-agents-md)
                      new-registry (new/add-to-registry registry entry)]
                  ;; Create directories
-                 (fs/create-dirs (str project-dir "/.project/iterations/001"))
+                 (fs/create-dirs (str project-dir "/.braids/iterations/001"))
                  ;; Write project.edn
-                 (spit (str project-dir "/.project/project.edn") (pr-str config))
+                 (spit (str project-dir "/.braids/project.edn") (pr-str config))
                  ;; Write ITERATION.md
-                 (spit (str project-dir "/.project/iterations/001/ITERATION.md")
+                 (spit (str project-dir "/.braids/iterations/001/ITERATION.md")
                        "# Iteration 001\n\nStatus: planning\n\n## Stories\n\n## Guardrails\n\n## Notes\n")
                  ;; Write AGENTS.md
                  (spit (str project-dir "/AGENTS.md") agents-md)
@@ -75,6 +75,6 @@
                  {:exit 0
                   :message (str "✓ Created project: " slug "\n"
                                 "  Path: " project-dir "\n"
-                                "  Config: .project/project.edn\n"
+                                "  Config: .braids/project.edn\n"
                                 "  Iteration: 001 (planning)\n"
                                 "  Registry: updated")})))))))))

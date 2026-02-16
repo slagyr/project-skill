@@ -13,7 +13,11 @@
       (let [path (if (clojure.string/starts-with? project-path "~/")
                    (str (babashka.fs/expand-home "~") "/" (subs project-path 2))
                    project-path)
-            iter-md (slurp (str path "/.project/iterations/" iter-num "/ITERATION.md"))
+            iter-dir (cond
+                       (babashka.fs/directory? (str path "/.braids/iterations")) (str path "/.braids/iterations")
+                       (babashka.fs/directory? (str path "/.project/iterations")) (str path "/.project/iterations")
+                       :else (str path "/.braids/iterations"))
+            iter-md (slurp (str iter-dir "/" iter-num "/ITERATION.md"))
             number (or (iter/parse-iteration-number iter-md) iter-num)
             status (or (iter/parse-iteration-status iter-md) "unknown")
             stories (iter/parse-iteration-stories iter-md)

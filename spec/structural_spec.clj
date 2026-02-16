@@ -92,13 +92,15 @@
             (when (and slug (not= slug "Slug") (not (str/starts-with? slug "-")))
               ;; Project structure
               (should (fs/directory? resolved))
-              ;; PROJECT.md in .project/ (new) or root (legacy)
-              (let [project-md-path (if (fs/exists? (str resolved "/.project/PROJECT.md"))
-                                      (str resolved "/.project/PROJECT.md")
-                                      (str resolved "/PROJECT.md"))
-                    iterations-dir (if (fs/directory? (str resolved "/.project/iterations"))
-                                     (str resolved "/.project/iterations")
-                                     (str resolved "/iterations"))]
+              ;; PROJECT.md in .braids/ (new), .project/ (mid), or root (legacy)
+              (let [project-md-path (cond
+                                      (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
+                                      (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
+                                      :else (str resolved "/PROJECT.md"))
+                    iterations-dir (cond
+                                     (fs/directory? (str resolved "/.braids/iterations")) (str resolved "/.braids/iterations")
+                                     (fs/directory? (str resolved "/.project/iterations")) (str resolved "/.project/iterations")
+                                     :else (str resolved "/iterations"))]
               (should (fs/exists? project-md-path))
               (should (fs/exists? (str resolved "/AGENTS.md")))
               (should (fs/directory? (str resolved "/.beads")))
@@ -157,9 +159,10 @@
                 [slug status _priority path] cols
                 resolved (str/replace (or path "") "~" home)]
             (when (and slug (= status "active"))
-              (let [pmd-path (if (fs/exists? (str resolved "/.project/PROJECT.md"))
-                               (str resolved "/.project/PROJECT.md")
-                               (str resolved "/PROJECT.md"))]
+              (let [pmd-path (cond
+                               (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
+                               (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
+                               :else (str resolved "/PROJECT.md"))]
                 (when (fs/exists? pmd-path)
                   (let [pmd (slurp pmd-path)]
                     ;; MaxWorkers

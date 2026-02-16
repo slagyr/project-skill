@@ -10,7 +10,7 @@ Implemented the `braids migrate` CLI command that converts markdown-based config
 - `plan-migration` — pure function that takes injectable IO fns (`read-file`, `file-exists?`) and returns a vector of action maps describing what to write
 - `format-migration-report` — human-readable summary of planned/executed actions
 - Skips files that already exist in EDN format (idempotent)
-- Handles both `.project/PROJECT.md` and root `PROJECT.md` fallback paths
+- Handles both `.braids/PROJECT.md` and root `PROJECT.md` fallback paths
 
 ### IO layer (`src/braids/migration_io.clj`)
 - `run-migrate` — executes the migration plan, writing EDN files to disk

@@ -13,14 +13,17 @@
     (str/lower-case (second m))))
 
 (defn find-active-iteration
-  "Scan .project/iterations/*/ITERATION.md for one with Status: active.
+  "Scan .braids/iterations/*/ITERATION.md for one with Status: active.
    Returns the iteration number (directory name) or nil.
    Tolerates markdown formatting variations in the Status field."
   [project-path]
   (let [path (if (str/starts-with? project-path "~/")
                (str (fs/expand-home "~") "/" (subs project-path 2))
                project-path)
-        iter-dir (str path "/.project/iterations")]
+        iter-dir (cond
+                   (fs/directory? (str path "/.braids/iterations")) (str path "/.braids/iterations")
+                   (fs/directory? (str path "/.project/iterations")) (str path "/.project/iterations")
+                   :else (str path "/.braids/iterations"))]
     (when (fs/exists? iter-dir)
       (some (fn [dir]
               (let [iter-md (str dir "/ITERATION.md")]

@@ -28,8 +28,8 @@ braids new <slug> --name "Project Name" --goal "Project goal" [options]
 ## What It Creates
 
 1. `<projects-home>/<slug>/` directory
-2. `.project/project.edn` — project config with all settings
-3. `.project/iterations/001/ITERATION.md` — iteration scaffold (planning status)
+2. `.braids/project.edn` — project config with all settings
+3. `.braids/iterations/001/ITERATION.md` — iteration scaffold (planning status)
 4. `AGENTS.md` — standard braids project agents file
 5. Git repo initialized with initial commit
 6. `bd init` for beads tracking

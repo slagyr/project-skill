@@ -123,12 +123,15 @@
                    :else {:projects []})]
     ;; Plan project.edn migrations
     (doseq [{:keys [slug path]} (:projects registry)]
-      (let [edn-path (str path "/.project/project.edn")
-            md-path (str path "/.project/PROJECT.md")
+      (let [edn-path (str path "/.braids/project.edn")
+            md-path (str path "/.braids/PROJECT.md")
+            legacy-edn-path (str path "/.project/project.edn")
+            legacy-md-path (str path "/.project/PROJECT.md")
             root-md-path (str path "/PROJECT.md")]
-        (when-not (file-exists? edn-path)
+        (when-not (or (file-exists? edn-path) (file-exists? legacy-edn-path))
           (let [md-source (cond
                             (file-exists? md-path) md-path
+                            (file-exists? legacy-md-path) legacy-md-path
                             (file-exists? root-md-path) root-md-path
                             :else nil)]
             (when md-source

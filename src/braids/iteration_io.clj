@@ -30,7 +30,11 @@
         iter-num (oio/find-active-iteration project-path)]
     (if-not iter-num
       "No active iteration found."
-      (let [iter-md (slurp (str path "/.project/iterations/" iter-num "/ITERATION.md"))
+      (let [iter-dir (cond
+                       (fs/directory? (str path "/.braids/iterations")) (str path "/.braids/iterations")
+                       (fs/directory? (str path "/.project/iterations")) (str path "/.project/iterations")
+                       :else (str path "/.braids/iterations"))
+            iter-md (slurp (str iter-dir "/" iter-num "/ITERATION.md"))
             number (or (iter/parse-iteration-number iter-md) iter-num)
             status (or (iter/parse-iteration-status iter-md) "unknown")
             stories (iter/parse-iteration-stories iter-md)

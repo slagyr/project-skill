@@ -8,7 +8,7 @@ Status: complete
 - projects-skill-xgq: braids ready: list beads ready to work (depends on 4ij)
 
 ## Guardrails
-- TDD: read .project/TDD.md (or ~/.openclaw/skills/tdd/SKILL.md) — RED → GREEN → REFACTOR for every feature
+- TDD: read .braids/TDD.md (or ~/.openclaw/skills/tdd/SKILL.md) — RED → GREEN → REFACTOR for every feature
 - 4ij must land first — it's the scaffold everything depends on
 - qle and xgq can run in parallel after 4ij
 - EDN over JSON — we're a Clojure project

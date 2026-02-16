@@ -6,7 +6,7 @@
 (def test-tmp (str (fs/create-temp-dir {:prefix "orch-io-test"})))
 
 (defn make-iteration-dir! [project iter-num content]
-  (let [dir (str project "/.project/iterations/" iter-num)]
+  (let [dir (str project "/.braids/iterations/" iter-num)]
     (fs/create-dirs dir)
     (spit (str dir "/ITERATION.md") content)
     dir))

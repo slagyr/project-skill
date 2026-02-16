@@ -66,7 +66,7 @@ bd init -q
 
 ### 5. Generate PROJECT.md with Real Content
 
-Write `.project/PROJECT.md` using the information gathered — **not** a template with TODOs. Example:
+Write `.braids/PROJECT.md` using the information gathered — **not** a template with TODOs. Example:
 
 ```markdown
 # <Project Name>
@@ -114,10 +114,10 @@ If the template doesn't exist, write the standard AGENTS.md inline (see `referen
 ### 7. Initialize Iteration 001
 
 ```bash
-mkdir -p "$PROJECT_DIR/.project/iterations/001"
+mkdir -p "$PROJECT_DIR/.braids/iterations/001"
 ```
 
-Write `.project/iterations/001/ITERATION.md`:
+Write `.braids/iterations/001/ITERATION.md`:
 
 ```markdown
 # Iteration 001
@@ -141,7 +141,7 @@ bd create "Story title"
 # repeat for each story
 ```
 
-Then update `.project/iterations/001/ITERATION.md` to reference them in the Stories section.
+Then update `.braids/iterations/001/ITERATION.md` to reference them in the Stories section.
 
 If the human wants to start work immediately, set the iteration status to `active`.
 
@@ -164,7 +164,7 @@ git commit -m "Initialize project: <slug>"
 ### 11. Review with the Human
 
 Before pushing or declaring done, show the human:
-- The `.project/PROJECT.md` content
+- The `.braids/PROJECT.md` content
 - The channel (if created)
 - The registry entry
 - Any seeded stories

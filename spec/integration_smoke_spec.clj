@@ -49,14 +49,16 @@
     (catch Exception _ false)))
 
 (defn resolve-iterations-dir [resolved]
-  (if (fs/directory? (str resolved "/.project/iterations"))
-    (str resolved "/.project/iterations")
-    (str resolved "/iterations")))
+  (cond
+    (fs/directory? (str resolved "/.braids/iterations")) (str resolved "/.braids/iterations")
+    (fs/directory? (str resolved "/.project/iterations")) (str resolved "/.project/iterations")
+    :else (str resolved "/iterations")))
 
 (defn resolve-project-md [resolved]
-  (if (fs/exists? (str resolved "/.project/PROJECT.md"))
-    (str resolved "/.project/PROJECT.md")
-    (str resolved "/PROJECT.md")))
+  (cond
+    (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
+    (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
+    :else (str resolved "/PROJECT.md")))
 
 ;; ── Integration tests per project ──
 

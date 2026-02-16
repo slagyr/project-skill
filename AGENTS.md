@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This project is managed by the **braids** skill. Read `.project/PROJECT.md` for goals, guardrails, and settings.
+This project is managed by the **braids** skill. Read `.braids/PROJECT.md` for goals, guardrails, and settings.
 
 ## Development Process
 
@@ -13,8 +13,8 @@ This project is managed by the **braids** skill. Read `.project/PROJECT.md` for 
   (or online: https://raw.githubusercontent.com/slagyr/braids/refs/heads/main/braids/references/worker.md)
 
 **If you're here on your own** (manual session, human asked you to help, etc.):
-1. Read `.project/PROJECT.md` — understand the goal and guardrails
-2. Find the active iteration: look in `.project/iterations/*/ITERATION.md` for `Status: active`
+1. Read `.braids/PROJECT.md` — understand the goal and guardrails
+2. Find the active iteration: look in `.braids/iterations/*/ITERATION.md` for `Status: active`
 3. Run `bd ready` to see available work
 4. Pick a bead, then follow the worker workflow: `~/.openclaw/skills/braids/references/worker.md`
    (or online: https://raw.githubusercontent.com/slagyr/braids/refs/heads/main/braids/references/worker.md)

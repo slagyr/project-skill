@@ -7,10 +7,10 @@
 
 (defn completed-iteration? [path]
   (let [rel (str (fs/relativize project-root path))]
-    (and (str/starts-with? rel ".project/iterations/")
+    (and (str/starts-with? rel ".braids/iterations/")
          (let [iter-num (some-> (re-find #"iterations/(\d+)" rel) second)]
            (when iter-num
-             (let [iter-md (str project-root "/.project/iterations/" iter-num "/ITERATION.md")]
+             (let [iter-md (str project-root "/.braids/iterations/" iter-num "/ITERATION.md")]
                (when (fs/exists? iter-md)
                  (str/includes? (slurp (str iter-md)) "complete"))))))))
 
@@ -70,5 +70,36 @@
   (it "cron job prompt references braids"
     (let [skill-md (slurp (str project-root "/braids/SKILL.md"))]
       (should (re-find #"skills/braids/references/orchestrator\.md" skill-md)))))
+
+(describe "Directory rename: .project → .braids"
+
+  (it ".braids directory exists"
+    (should (fs/directory? (str project-root "/.braids"))))
+
+  (it ".project directory does not exist"
+    (should-not (fs/directory? (str project-root "/.project"))))
+
+  (it "no mutable files reference '.project/' as primary path (except migration/compat code)"
+    (let [matches (->> (files-containing project-root #"\.project/")
+                       (remove #(str/includes? % "migration"))
+                       ;; Source files with .project/ fallback for backward compatibility
+                       (remove #(str/includes? % "ready_io.clj"))
+                       (remove #(str/includes? % "orch_io.clj"))
+                       (remove #(str/includes? % "status_io.clj"))
+                       (remove #(str/includes? % "iteration_io.clj"))
+                       ;; Specs with backward-compat fallback for .project/
+                       (remove #(str/includes? % "structural_spec.clj"))
+                       (remove #(str/includes? % "integration_smoke_spec.clj")))]
+      (should= [] matches)))
+
+  (it "source files use .braids/ as primary path (not .project/)"
+    ;; Verify that .braids/ appears BEFORE .project/ in fallback chains
+    (doseq [src-file ["src/braids/ready_io.clj" "src/braids/orch_io.clj"
+                       "src/braids/status_io.clj" "src/braids/iteration_io.clj"]]
+      (let [content (slurp (str project-root "/" src-file))
+            braids-idx (str/index-of content ".braids/")
+            project-idx (str/index-of content ".project/")]
+        (when (and braids-idx project-idx)
+          (should (< braids-idx project-idx)))))))
 
 (run-specs)

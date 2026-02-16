@@ -9,7 +9,7 @@ Implemented `braids orch-tick` — the orchestrator's decision engine as a pure 
 ### Architecture: Pure + IO (same pattern as `ready`)
 
 - **`braids.orch`** — Pure decision logic. `tick` takes registry, configs, active iterations map, ready beads, worker counts, and notifications → returns `{action: "spawn", spawns: [...]}` or `{action: "idle", reason: "..."}`. Zero side effects.
-- **`braids.orch-io`** — IO layer. Finds active iterations by scanning `.project/iterations/*/ITERATION.md`, reuses `ready-io` for registry/config/bead loading, composes everything into `tick`.
+- **`braids.orch-io`** — IO layer. Finds active iterations by scanning `.braids/iterations/*/ITERATION.md`, reuses `ready-io` for registry/config/bead loading, composes everything into `tick`.
 - **`braids.core`** — Wired `orch-tick` command; outputs JSON to stdout.
 
 ### Spawn decision output

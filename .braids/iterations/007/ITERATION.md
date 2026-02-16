@@ -5,7 +5,7 @@ Status: complete
 ## Stories
 - projects-skill-3j9: Specs must not assume OpenClaw is installed
 - projects-skill-ilo: Specs must not assume any projects exist
-- projects-skill-o6o: Migrate iterations/ to .project/iterations/ for projects-skill
+- projects-skill-o6o: Migrate iterations/ to .braids/iterations/ for projects-skill
 
 ## Guardrails
 - git pull before making any changes (Micah may have pushed changes)

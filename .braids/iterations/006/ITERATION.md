@@ -7,7 +7,7 @@ Status: complete
 - projects-skill-kln: Replace homegrown test framework with actual speclj 3.12.0
 - projects-skill-top: Delete tests/ directory — replaced by spec/ with speclj (depends on kln)
 - projects-skill-cbf: Remove RETRO.md auto-generation feature — redundant with deliverables
-- projects-skill-ly3: Move PROJECT.md and iterations/ into .project/ directory
+- projects-skill-ly3: Move PROJECT.md and iterations/ into .braids/ directory
 
 ## Guardrails
 - kln must land first — real speclj is the foundation for all other testing

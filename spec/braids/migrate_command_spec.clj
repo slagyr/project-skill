@@ -79,18 +79,18 @@
                           "- **Autonomy:** full\n")
           fs-state {"/tmp/test-state/registry.md" registry-md
                     "/tmp/test-state/registry.edn" nil
-                    "/projects/foo/.project/PROJECT.md" project-md
-                    "/projects/foo/.project/project.edn" nil}
+                    "/projects/foo/.braids/PROJECT.md" project-md
+                    "/projects/foo/.braids/project.edn" nil}
           actions (mig/plan-migration {:state-home state-home
                                        :read-file (fn [p] (get fs-state p))
                                        :file-exists? (fn [p] (some? (get fs-state p)))})]
-      (should-contain {:type :write-project-edn :path "/projects/foo/.project/project.edn"}
+      (should-contain {:type :write-project-edn :path "/projects/foo/.braids/project.edn"}
                       (map #(select-keys % [:type :path]) actions))))
 
   (it "skips project.edn when it already exists"
     (let [state-home "/tmp/test-state"
           fs-state {"/tmp/test-state/registry.edn" "{:projects [{:slug \"foo\" :status :active :priority :normal :path \"/projects/foo\"}]}"
-                    "/projects/foo/.project/project.edn" "{:name \"Foo\"}"}
+                    "/projects/foo/.braids/project.edn" "{:name \"Foo\"}"}
           actions (mig/plan-migration {:state-home state-home
                                        :read-file (fn [p] (get fs-state p))
                                        :file-exists? (fn [p] (some? (get fs-state p)))})]
@@ -98,7 +98,7 @@
 
   (it "formats migration report"
     (let [actions [{:type :write-registry-edn :path "/state/registry.edn"}
-                   {:type :write-project-edn :path "/proj/foo/.project/project.edn" :slug "foo"}]]
+                   {:type :write-project-edn :path "/proj/foo/.braids/project.edn" :slug "foo"}]]
       (should-contain "registry.edn" (mig/format-migration-report actions))
       (should-contain "foo" (mig/format-migration-report actions))))
 
