@@ -4,10 +4,12 @@
             [braids.ready-io :as ready-io]
             [braids.orch :as orch]
             [braids.orch-io :as orch-io]
-            [braids.list-io :as list-io]))
+            [braids.list-io :as list-io]
+            [braids.iteration-io :as iter-io]))
 
 (def commands
   {"list"      {:command :list      :doc "Show projects from registry"}
+   "iteration" {:command :iteration :doc "Show active iteration and bead statuses"}
    "ready"     {:command :ready     :doc "List beads ready to work"}
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
    "help"      {:command :help      :doc "Show this help message"}})
@@ -51,6 +53,13 @@
       :list (let [json? (some #{"--json"} (:args (dispatch args)))]
               (println (list-io/load-and-list {:json? json?}))
               0)
+      :iteration (let [args (:args (dispatch args))
+                       json? (some #{"--json"} args)
+                       ;; Use --project path or default to cwd
+                       project-path (or (second (drop-while #(not= "--project" %) args))
+                                        (System/getProperty "user.dir"))]
+                   (println (iter-io/load-and-show {:project-path project-path :json? json?}))
+                   0)
       :ready (let [result (ready-io/gather-and-compute)]
                (println (ready/format-ready-output result))
                0)
