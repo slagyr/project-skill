@@ -1,9 +1,9 @@
 ---
-name: projects
+name: braids
 description: Autonomous background project management with iterative delivery. Use when managing long-running projects, spawning background work sessions, tracking tasks with beads (bd), organizing iterations, or preparing check-in reviews. Triggers on project creation, status checks, work sessions, iteration planning, and review preparation.
 ---
 
-# Projects
+# Braids
 
 Manage long-running autonomous projects with iterative delivery cycles.
 
@@ -17,12 +17,12 @@ For initial installation (symlink, `bd`, `PROJECTS_HOME`, orchestrator cron), fo
 
 **`PROJECTS_HOME`** defines where all projects live. Default: `~/Projects`
 
-Resolve `PROJECTS_HOME` at the start of every session (default: `~/Projects`). All project repos live under `PROJECTS_HOME`. Agent infrastructure files (registry, orchestrator state, STATUS dashboard) live in `~/.openclaw/projects/`.
+Resolve `PROJECTS_HOME` at the start of every session (default: `~/Projects`). All project repos live under `PROJECTS_HOME`. Agent infrastructure files (registry, orchestrator state, STATUS dashboard) live in `~/.openclaw/braids/`.
 
 ## Directory Layout
 
 ```
-~/.openclaw/projects/
+~/.openclaw/braids/
   registry.md                    # Master list of all projects
   STATUS.md                      # Auto-generated progress dashboard (see references/status-dashboard.md)
   .orchestrator-state.json       # Orchestrator idle/backoff state
@@ -42,7 +42,7 @@ $PROJECTS_HOME/
     .beads/                      # bd task tracking
 ```
 
-## Registry Format (`~/.openclaw/projects/registry.md`)
+## Registry Format (`~/.openclaw/braids/registry.md`)
 
 ```markdown
 # Projects
@@ -259,7 +259,7 @@ Set up a recurring cron job for the orchestrator:
   "schedule": { "kind": "every", "everyMs": 300000 },
   "payload": {
     "kind": "agentTurn",
-    "message": "You are the projects orchestrator. Read and follow ~/.openclaw/skills/projects/references/orchestrator.md"
+    "message": "You are the braids orchestrator. Read and follow ~/.openclaw/skills/braids/references/orchestrator.md"
   },
   "sessionTarget": "isolated"
 }
@@ -317,7 +317,7 @@ Workers are spawned with label `project:<slug>:<bead-id>` so the orchestrator ca
 
 ### Orchestrator Frequency Scaling
 
-The orchestrator automatically reduces polling frequency when there's no work to do. It writes `~/.openclaw/projects/.orchestrator-state.json` after each run, tracking idle state and reason. On subsequent runs, it checks this file and skips execution if the backoff interval hasn't elapsed:
+The orchestrator automatically reduces polling frequency when there's no work to do. It writes `~/.openclaw/braids/.orchestrator-state.json` after each run, tracking idle state and reason. On subsequent runs, it checks this file and skips execution if the backoff interval hasn't elapsed:
 
 - **No active iterations** → polls every 30 minutes (vs. default 5)
 - **No ready beads** → polls every 15 minutes

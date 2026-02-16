@@ -7,7 +7,7 @@
 
 (def home (System/getProperty "user.home"))
 (def projects-home (or (System/getenv "PROJECTS_HOME") (str home "/Projects")))
-(def state-home (str home "/.openclaw/projects"))
+(def state-home (str home "/.openclaw/braids"))
 (def registry (str state-home "/registry.md"))
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))

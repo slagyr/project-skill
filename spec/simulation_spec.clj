@@ -202,10 +202,10 @@
 
 (describe "Scenario 11: RETRO.md feature removed"
   (it "worker.md does not reference RETRO.md generation"
-    (let [worker (slurp (str project-root "/projects/references/worker.md"))]
+    (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should-not (re-find #"Generate.*Retrospective|auto-generate.*RETRO" worker))))
   (it "worker.md does not reference .completing lock"
-    (let [worker (slurp (str project-root "/projects/references/worker.md"))]
+    (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should-not (str/includes? worker ".completing"))))
   (it "CONTRACTS.md does not have RETRO.md section"
     (should-not (re-find #"### \d+\.\d+ RETRO\.md" contracts))))
@@ -254,10 +254,10 @@
 
 (describe "Scenario 16: Iteration Completion (simplified)"
   (it "worker.md documents simple iteration completion"
-    (let [worker (slurp (str project-root "/projects/references/worker.md"))]
+    (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should (re-find #"Update ITERATION.md status to.*complete" worker))))
   (it "no .completing lock mechanism in worker.md"
-    (let [worker (slurp (str project-root "/projects/references/worker.md"))]
+    (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should-not (str/includes? worker ".completing"))))
   (it "no .completing lock mechanism in CONTRACTS.md"
     (should-not (str/includes? contracts ".completing"))))

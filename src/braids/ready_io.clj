@@ -12,7 +12,7 @@
   (str (fs/expand-home "~/Projects")))
 
 (def default-state-home
-  (str (fs/expand-home "~/.openclaw/projects")))
+  (str (fs/expand-home "~/.openclaw/braids")))
 
 (defn resolve-projects-home []
   ;; Check for registry.edn or registry.md to find PROJECTS_HOME
@@ -21,7 +21,7 @@
 
 (defn resolve-state-home []
   "Returns the directory for agent infrastructure files (registry, orchestrator state, STATUS).
-   Defaults to ~/.openclaw/projects/"
+   Defaults to ~/.openclaw/braids/"
   default-state-home)
 
 (defn- expand-path [path]

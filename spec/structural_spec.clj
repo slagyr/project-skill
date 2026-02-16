@@ -6,12 +6,12 @@
 
 (def home (System/getProperty "user.home"))
 (def projects-home (or (System/getenv "PROJECTS_HOME") (str home "/Projects")))
-(def skill-symlink (str home "/.openclaw/skills/projects"))
-(def skill-source (str projects-home "/projects-skill/projects"))
+(def skill-symlink (str home "/.openclaw/skills/braids"))
+(def skill-source (str projects-home "/projects-skill/braids"))
 ;; Use project-relative path for file checks (doesn't require OpenClaw installed)
 (def project-root (System/getProperty "user.dir"))
-(def skill-dir (str project-root "/projects"))
-(def state-home (str home "/.openclaw/projects"))
+(def skill-dir (str project-root "/braids"))
+(def state-home (str home "/.openclaw/braids"))
 (def registry (str state-home "/registry.md"))
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
@@ -35,7 +35,7 @@
     (if (fs/exists? skill-symlink)
       (should (fs/directory? skill-symlink))
       (should true)))
-  (it "symlink points to projects-skill/projects (skipped if OpenClaw not installed)"
+  (it "symlink points to projects-skill/braids (skipped if OpenClaw not installed)"
     (if (fs/exists? skill-symlink)
       (should= (real-path skill-symlink) (real-path skill-source))
       (should true))))
@@ -144,7 +144,7 @@
     (let [cron-output (try (:out (p/shell {:out :string :err :string :continue true} "openclaw" "cron" "list"))
                            (catch Exception _ nil))]
       (if cron-output
-        (should-contain "projects" cron-output)
+        (should-contain "braids" cron-output)
         (should true)))) ;; skip if openclaw not in PATH
 
   (it "active projects have valid spawn config (skipped if no registry)"

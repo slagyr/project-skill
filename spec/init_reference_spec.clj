@@ -4,7 +4,7 @@
             [clojure.string :as str]))
 
 (def project-root (str (System/getProperty "user.dir")))
-(def skill-dir (str project-root "/projects"))
+(def skill-dir (str project-root "/braids"))
 (def init-ref (str skill-dir "/references/init.md"))
 
 (describe "Init Reference (references/init.md)"

@@ -1,6 +1,6 @@
 # Projects Orchestrator
 
-You are the projects orchestrator. You do NOT perform bead work — you spawn workers that do.
+You are the braids orchestrator. You do NOT perform bead work — you spawn workers that do.
 
 ## Steps
 
@@ -77,7 +77,7 @@ The spawn message is intentionally minimal. The worker reads `AGENTS.md` in the 
 
 ### 5. Generate Status Dashboard
 
-Generate `~/.openclaw/projects/STATUS.md` following `references/status-dashboard.md`.
+Generate `~/.openclaw/braids/STATUS.md` following `references/status-dashboard.md`.
 
 ### 6. Done
 

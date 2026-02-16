@@ -1,6 +1,6 @@
-# Projects Skill — First-Time Setup
+# Braids Skill — First-Time Setup
 
-Follow this guide when a user asks to "set up the projects skill" or similar. This is a **one-time setup** — once complete, the orchestrator cron handles everything.
+Follow this guide when a user asks to "set up the braids skill" or similar. This is a **one-time setup** — once complete, the orchestrator cron handles everything.
 
 ## Prerequisites
 
@@ -14,12 +14,12 @@ Follow this guide when a user asks to "set up the projects skill" or similar. Th
 Symlink the skill directory into OpenClaw's skills folder:
 
 ```bash
-ln -s ~/Projects/projects-skill/projects ~/.openclaw/skills/projects
+ln -s ~/Projects/projects-skill/braids ~/.openclaw/skills/braids
 ```
 
 Verify:
 ```bash
-ls ~/.openclaw/skills/projects/SKILL.md
+ls ~/.openclaw/skills/braids/SKILL.md
 ```
 
 If the skill source is elsewhere, adjust the symlink target accordingly.
@@ -30,15 +30,15 @@ If the skill source is elsewhere, adjust the symlink target accordingly.
 bd --version
 ```
 
-If `bd` is not found, install it following the [beads documentation](https://github.com/nickthecook/bd). The projects skill requires `bd` for all task tracking.
+If `bd` is not found, install it following the [beads documentation](https://github.com/nickthecook/bd). The braids skill requires `bd` for all task tracking.
 
 ### 3. Create PROJECTS_HOME and State Directory
 
 ```bash
 mkdir -p ~/Projects
-mkdir -p ~/.openclaw/projects
+mkdir -p ~/.openclaw/braids
 
-cat > ~/.openclaw/projects/registry.md << 'EOF'
+cat > ~/.openclaw/braids/registry.md << 'EOF'
 # Projects
 
 | Slug | Status | Priority | Path |
@@ -46,7 +46,7 @@ cat > ~/.openclaw/projects/registry.md << 'EOF'
 EOF
 ```
 
-If using a custom `PROJECTS_HOME`, replace `~/Projects` with the desired path. The registry and orchestrator state always live in `~/.openclaw/projects/` regardless of `PROJECTS_HOME`.
+If using a custom `PROJECTS_HOME`, replace `~/Projects` with the desired path. The registry and orchestrator state always live in `~/.openclaw/braids/` regardless of `PROJECTS_HOME`.
 
 ### 4. Set Up Orchestrator Cron Job
 
@@ -57,7 +57,7 @@ Create the cron job that drives autonomous project work:
   "schedule": { "kind": "every", "everyMs": 300000 },
   "payload": {
     "kind": "agentTurn",
-    "message": "You are the projects orchestrator. Read and follow ~/.openclaw/skills/projects/references/orchestrator.md"
+    "message": "You are the projects orchestrator. Read and follow ~/.openclaw/skills/braids/references/orchestrator.md"
   },
   "sessionTarget": "isolated"
 }
@@ -73,9 +73,9 @@ Follow [`project-creation.md`](project-creation.md) — an interactive guide tha
 
 After setup, confirm everything is in place:
 
-- [ ] `~/.openclaw/skills/projects/SKILL.md` exists (symlink works)
+- [ ] `~/.openclaw/skills/braids/SKILL.md` exists (symlink works)
 - [ ] `bd --version` succeeds
-- [ ] `~/.openclaw/projects/registry.md` exists with the header row
+- [ ] `~/.openclaw/braids/registry.md` exists with the header row
 - [ ] Orchestrator cron job is registered
 - [ ] (If created) first project appears in `registry.md`
 

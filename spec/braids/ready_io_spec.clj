@@ -28,8 +28,8 @@
 
   (describe "resolve-state-home"
 
-    (it "returns ~/.openclaw/projects by default"
-      (should= (str (fs/expand-home "~/.openclaw/projects"))
+    (it "returns ~/.openclaw/braids by default"
+      (should= (str (fs/expand-home "~/.openclaw/braids"))
                (rio/resolve-state-home))))
 
   (describe "load-registry uses state-home"

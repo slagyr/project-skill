@@ -14,7 +14,7 @@
 
 (defn help-text []
   (str/join "\n"
-    ["braids — CLI for the projects skill"
+    ["braids — CLI for the braids skill"
      ""
      "Usage: braids <command> [args...]"
      ""

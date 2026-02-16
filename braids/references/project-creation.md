@@ -4,10 +4,10 @@ A conversational guide for agents creating a new project. Follow these steps whe
 
 ## Prerequisites
 
-- The projects skill is installed (`~/.openclaw/skills/projects/SKILL.md` exists)
+- The braids skill is installed (`~/.openclaw/skills/braids/SKILL.md` exists)
 - `bd` and `git` are available
 - `PROJECTS_HOME` is set up (default: `~/Projects`)
-- `~/.openclaw/projects/registry.md` exists
+- `~/.openclaw/braids/registry.md` exists
 
 ## Steps
 
@@ -55,7 +55,7 @@ PROJECT_DIR="$PROJECTS_HOME/$SLUG"
 
 # Verify slug isn't taken
 test ! -d "$PROJECT_DIR" || echo "ERROR: directory already exists"
-grep -q "| $SLUG |" "$HOME/.openclaw/projects/registry.md" && echo "ERROR: slug in registry"
+grep -q "| $SLUG |" "$HOME/.openclaw/braids/registry.md" && echo "ERROR: slug in registry"
 
 # Create directory and init
 mkdir -p "$PROJECT_DIR/.project"
@@ -106,7 +106,7 @@ If the human wants mentions on critical events (iteration-complete, question, bl
 Copy the skill template:
 
 ```bash
-cp ~/.openclaw/skills/projects/references/agents-template.md "$PROJECT_DIR/AGENTS.md"
+cp ~/.openclaw/skills/braids/references/agents-template.md "$PROJECT_DIR/AGENTS.md"
 ```
 
 If the template doesn't exist, write the standard AGENTS.md inline (see `references/agents-template.md` for the canonical version).
@@ -147,7 +147,7 @@ If the human wants to start work immediately, set the iteration status to `activ
 
 ### 9. Add to Registry
 
-Append to `~/.openclaw/projects/registry.md`:
+Append to `~/.openclaw/braids/registry.md`:
 
 ```
 | <slug> | active | <priority> | <path> |

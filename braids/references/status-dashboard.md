@@ -1,6 +1,6 @@
 # Status Dashboard
 
-Auto-generate `~/.openclaw/projects/STATUS.md` — a progress dashboard across all active projects.
+Auto-generate `~/.openclaw/braids/STATUS.md` — a progress dashboard across all active projects.
 
 ## When to Generate
 
@@ -8,7 +8,7 @@ The orchestrator generates STATUS.md at the **end of every run**, after spawning
 
 ## Output
 
-Write to `~/.openclaw/projects/STATUS.md`. This file is **auto-generated and overwritten** each run — do not hand-edit it.
+Write to `~/.openclaw/braids/STATUS.md`. This file is **auto-generated and overwritten** each run — do not hand-edit it.
 
 ## Format
 
@@ -58,7 +58,7 @@ If a project has no active iteration, show it with a note: "No active iteration.
 
 *Auto-generated: 2026-02-13 03:00*
 
-## Projects Skill — active
+## Braids — active
 
 **Iteration:** 003 (active)
 **Priority:** high | **Autonomy:** full

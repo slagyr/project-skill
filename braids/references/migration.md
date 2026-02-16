@@ -10,7 +10,7 @@ User requests migration via the project's Channel (e.g., "update to latest skill
 
 ### 1. Read Current Skill Format
 
-Read `~/.openclaw/skills/projects/SKILL.md` and extract the canonical formats for:
+Read `~/.openclaw/skills/braids/SKILL.md` and extract the canonical formats for:
 - `.project/PROJECT.md` (fields, structure, notifications table)
 - `ITERATION.md` (fields, structure)
 - Directory layout conventions

@@ -4,9 +4,9 @@
             [clojure.string :as str]))
 
 (def project-root (str (System/getProperty "user.dir")))
-(def ref-file (str project-root "/projects/references/project-creation.md"))
-(def skill-file (str project-root "/projects/SKILL.md"))
-(def init-file (str project-root "/projects/references/init.md"))
+(def ref-file (str project-root "/braids/references/project-creation.md"))
+(def skill-file (str project-root "/braids/SKILL.md"))
+(def init-file (str project-root "/braids/references/init.md"))
 
 (describe "project-creation.md Reference"
   (it "exists"
@@ -37,7 +37,7 @@
 
   (context "Old script removed"
     (it "projects-init script removed"
-      (should-not (fs/exists? (str project-root "/projects/bin/projects-init"))))
+      (should-not (fs/exists? (str project-root "/braids/bin/projects-init"))))
     (it "test_projects_init.sh removed"
       (should-not (fs/exists? (str project-root "/tests/test_projects_init.sh")))))
 
