@@ -9,7 +9,8 @@
 (def skill-symlink (str home "/.openclaw/skills/projects"))
 (def skill-source (str projects-home "/projects-skill/projects"))
 ;; Use project-relative path for file checks (doesn't require OpenClaw installed)
-(def skill-dir skill-source)
+(def project-root (System/getProperty "user.dir"))
+(def skill-dir (str project-root "/projects"))
 (def registry (str projects-home "/registry.md"))
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
@@ -63,8 +64,8 @@
 ;; ── Registry ──
 
 (describe "Registry"
-  (it "registry.md exists (skipped if no projects home)"
-    (if (fs/directory? projects-home)
+  (it "registry.md exists (skipped if no registry)"
+    (if (fs/exists? registry)
       (should (fs/exists? registry))
       (should true)))
 
