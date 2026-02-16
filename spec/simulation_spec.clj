@@ -22,8 +22,8 @@
   (spit (str test-project "/.braids/iterations/001/ITERATION.md")
     "# Iteration 001\n\n- **Status:** active\n\n## Stories\n- test-sim-aaa: First test bead\n- test-sim-bbb: Second test bead (depends on aaa)\n- test-sim-ccc: Third test bead (independent)\n")
 
-  (spit (str test-tmp "/registry.md")
-    (str "| Slug | Status | Priority | Path |\n|------|--------|----------|------|\n| test-sim-project | active | high | " test-project " |\n")))
+  (spit (str test-tmp "/registry.edn")
+    (pr-str {:projects [{:slug "test-sim-project" :status :active :priority :high :path test-project}]})))
 
 ;; ── Scenario 1: PROJECT.md Defaults ──
 
@@ -174,12 +174,17 @@
 (describe "Scenario 9: Registry Validation"
   (before-all (setup-test-project!))
 
-  (it "has required columns"
-    (should-contain "| Slug | Status | Priority | Path |" (slurp (str test-tmp "/registry.md"))))
+  (it "registry.edn is valid EDN"
+    (let [content (slurp (str test-tmp "/registry.edn"))
+          parsed (clojure.edn/read-string content)]
+      (should (map? parsed))
+      (should (contains? parsed :projects))))
   (it "has valid status"
-    (should-contain "active" (slurp (str test-tmp "/registry.md"))))
+    (let [parsed (clojure.edn/read-string (slurp (str test-tmp "/registry.edn")))]
+      (should= :active (-> parsed :projects first :status))))
   (it "has valid priority"
-    (should-contain "high" (slurp (str test-tmp "/registry.md"))))
+    (let [parsed (clojure.edn/read-string (slurp (str test-tmp "/registry.edn")))]
+      (should= :high (-> parsed :projects first :priority))))
   (it "rejects 'complete' as registry status"
     (should-not (contains? #{"active" "paused" "blocked"} "complete"))))
 

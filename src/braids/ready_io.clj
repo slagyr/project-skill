@@ -29,18 +29,11 @@
     path))
 
 (defn load-registry
-  "Load registry from BRAIDS_HOME. Tries registry.edn first, falls back to registry.md."
+  "Load registry from registry.edn. No markdown fallback."
   [braids-home]
-  (let [edn-path (str braids-home "/registry.edn")
-        md-path (str braids-home "/registry.md")]
-    (cond
-      (fs/exists? edn-path)
+  (let [edn-path (str braids-home "/registry.edn")]
+    (if (fs/exists? edn-path)
       (registry/parse-registry (slurp edn-path))
-
-      (fs/exists? md-path)
-      (migration/parse-registry-md (slurp md-path))
-
-      :else
       {:projects []})))
 
 (defn load-project-config

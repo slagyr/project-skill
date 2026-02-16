@@ -44,4 +44,17 @@
         (spit (str braids-home "/registry.edn")
                "{:projects [{:slug \"old\" :status :active :priority :normal :path \"/tmp/old\"}]}")
         (let [result (rio/load-registry state-home)]
-          (should= "proj" (-> result :projects first :slug)))))))
+          (should= "proj" (-> result :projects first :slug)))))
+
+    (it "does not fall back to registry.md"
+      (let [state-home (str (fs/create-temp-dir {:prefix "no-md-fallback"}))]
+        ;; Only put registry.md, no registry.edn
+        (spit (str state-home "/registry.md")
+               "| Slug | Status | Priority | Path |\n|------|--------|----------|------|\n| proj | active | normal | /tmp/proj |\n")
+        (let [result (rio/load-registry state-home)]
+          (should= [] (:projects result)))))
+
+    (it "returns empty projects when no registry.edn exists"
+      (let [state-home (str (fs/create-temp-dir {:prefix "empty-reg"}))]
+        (let [result (rio/load-registry state-home)]
+          (should= [] (:projects result)))))))

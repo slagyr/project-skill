@@ -8,7 +8,7 @@
 (def home (System/getProperty "user.home"))
 (def braids-home (or (System/getenv "BRAIDS_HOME") (str home "/Projects")))
 (def state-home (str home "/.openclaw/braids"))
-(def registry (str state-home "/registry.md"))
+(def registry (str state-home "/registry.edn"))
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
 
@@ -63,15 +63,11 @@
 ;; ── Integration tests per project ──
 
 (when (fs/exists? registry)
-  (let [reg-content (slurp registry)
-        lines (str/split-lines reg-content)
-        data-lines (->> lines (filter #(str/includes? % "|")) (drop 2) (remove #(str/starts-with? (str/trim %) "|-")))]
+  (let [reg (clojure.edn/read-string (slurp registry))]
 
-    (doseq [line data-lines]
-      (let [cols (->> (str/split line #"\|") (map str/trim) (remove str/blank?))
-            [slug status _priority path] cols
-            resolved (str/replace (or path "") "~" home)]
-        (when (and slug (not= slug "Slug") (not (str/starts-with? slug "-"))
+    (doseq [{:keys [slug status _priority path]} (:projects reg)]
+      (let [resolved (str/replace (or path "") "~" home)]
+        (when (and slug
                    (fs/directory? resolved)
                    (fs/exists? (resolve-project-md resolved)))
 

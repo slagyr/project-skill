@@ -6,13 +6,15 @@ This document defines the invariants that the orchestrator, worker, and file for
 
 ## 1. File Format Contracts
 
-### 1.1 registry.md
+### 1.1 registry.edn
 
-- **Location:** `~/.openclaw/braids/registry.md`
-- **Required columns:** Slug, Status, Priority, Path
-- **Valid statuses:** `active`, `paused`, `blocked` (never `complete`)
-- **Slug uniqueness:** No two rows share the same Slug
-- **Path validity:** Each Path must point to an existing directory containing `.braids/PROJECT.md`
+- **Location:** `~/.openclaw/braids/registry.edn`
+- **Format:** EDN map with `:projects` key containing a vector of project maps
+- **Required keys per project:** `:slug`, `:status`, `:priority`, `:path`
+- **Valid statuses:** `:active`, `:paused`, `:blocked` (never `:complete`)
+- **Slug uniqueness:** No two projects share the same `:slug`
+- **Path validity:** Each `:path` must point to an existing directory containing `.braids/PROJECT.md`
+- **No markdown fallback:** `registry.md` is not read; use `bd migrate` to convert
 
 ### 1.2 PROJECT.md
 
@@ -154,7 +156,7 @@ Workers with `ask-first` autonomy must confirm via Channel before executing. `fu
 `~` always resolves to the user's home directory, never the agent workspace. Project files are never created inside `~/.openclaw/workspace/`.
 
 ### 4.2 BRAIDS_HOME Resolution
-`BRAIDS_HOME` defaults to `~/Projects`. Checked once per session. Agent infrastructure files (registry.md, .orchestrator-state.json, STATUS.md) live in `~/.openclaw/braids/`, not in `BRAIDS_HOME`.
+`BRAIDS_HOME` defaults to `~/Projects`. Checked once per session. Agent infrastructure files (registry.edn, .orchestrator-state.json, STATUS.md) live in `~/.openclaw/braids/`, not in `BRAIDS_HOME`.
 
 ### 4.3 Single Source of Truth
 - What to work on → `bd ready` (not manual lists)

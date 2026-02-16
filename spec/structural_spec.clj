@@ -12,10 +12,17 @@
 (def project-root (System/getProperty "user.dir"))
 (def skill-dir (str project-root "/braids"))
 (def state-home (str home "/.openclaw/braids"))
-(def registry (str state-home "/registry.md"))
+(def registry (str state-home "/registry.edn"))
 
 (defn slurp-safe [path] (when (fs/exists? path) (slurp path)))
 (defn real-path [path] (try (str (fs/real-path path)) (catch Exception _ nil)))
+
+(defn- load-registry []
+  (when (fs/exists? registry)
+    (clojure.edn/read-string (slurp registry))))
+
+(defn- resolve-path [path]
+  (str/replace (or path "") "~" home))
 
 ;; ── Legacy tests/ directory removed ──
 
@@ -26,7 +33,6 @@
 ;; ── Skill Symlink ──
 
 (describe "Skill Symlink"
-  ;; These tests only run when OpenClaw is installed (symlink exists)
   (it "symlink exists (skipped if OpenClaw not installed)"
     (if (fs/exists? skill-symlink)
       (should (fs/sym-link? skill-symlink))
@@ -65,42 +71,33 @@
 ;; ── Registry ──
 
 (describe "Registry"
-  (it "registry.md exists (skipped if no registry)"
+  (it "registry.edn exists (skipped if no registry)"
     (if (fs/exists? registry)
       (should (fs/exists? registry))
       (should true)))
 
-  (it "has table header (skipped if no registry)"
+  (it "is valid EDN with :projects key (skipped if no registry)"
     (if (fs/exists? registry)
-      (should-contain "| Slug | Status | Priority | Path |" (slurp-safe registry))
+      (let [parsed (load-registry)]
+        (should (map? parsed))
+        (should (contains? parsed :projects)))
       (should true)))
 
   (it "all registered projects are valid (skipped if no registry)"
-    (when (fs/exists? registry)
-      (let [content (slurp-safe registry)
-            lines (str/split-lines (or content ""))
-            data-lines (->> lines
-                           (filter #(str/includes? % "|"))
-                           (drop 2)
-                           (remove #(str/starts-with? (str/trim %) "|-")))]
-        (doseq [line data-lines]
-          (let [cols (->> (str/split line #"\|")
-                          (map str/trim)
-                          (remove str/blank?))
-                [slug status priority path] cols
-                resolved (str/replace (or path "") "~" home)]
-            (when (and slug (not= slug "Slug") (not (str/starts-with? slug "-")))
-              ;; Project structure
-              (should (fs/directory? resolved))
-              ;; PROJECT.md in .braids/ (new), .project/ (mid), or root (legacy)
-              (let [project-md-path (cond
-                                      (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
-                                      (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
-                                      :else (str resolved "/PROJECT.md"))
-                    iterations-dir (cond
-                                     (fs/directory? (str resolved "/.braids/iterations")) (str resolved "/.braids/iterations")
-                                     (fs/directory? (str resolved "/.project/iterations")) (str resolved "/.project/iterations")
-                                     :else (str resolved "/iterations"))]
+    (when-let [reg (load-registry)]
+      (doseq [{:keys [slug status priority path]} (:projects reg)]
+        (let [resolved (resolve-path path)]
+          (when slug
+            ;; Project structure
+            (should (fs/directory? resolved))
+            (let [project-md-path (cond
+                                    (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
+                                    (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
+                                    :else (str resolved "/PROJECT.md"))
+                  iterations-dir (cond
+                                   (fs/directory? (str resolved "/.braids/iterations")) (str resolved "/.braids/iterations")
+                                   (fs/directory? (str resolved "/.project/iterations")) (str resolved "/.project/iterations")
+                                   :else (str resolved "/iterations"))]
               (should (fs/exists? project-md-path))
               (should (fs/exists? (str resolved "/AGENTS.md")))
               (should (fs/directory? (str resolved "/.beads")))
@@ -114,8 +111,8 @@
                 (should-contain "## Guardrails" pmd))
 
               ;; Registry status/priority validation
-              (should (contains? #{"active" "paused" "blocked"} status))
-              (should (contains? #{"high" "normal" "low"} priority))
+              (should (contains? #{:active :paused :blocked} status))
+              (should (contains? #{:high :normal :low} priority))
 
               ;; Iteration validation
               (when (fs/directory? iterations-dir)
@@ -137,7 +134,7 @@
                             (when-let [bead-id (some-> (re-find #"([a-z]+-[a-z0-9-]+)" story-line) second)]
                               (let [r (p/shell {:dir resolved :out :string :err :string :continue true}
                                                "bd" "show" bead-id)]
-                                (should= 0 (:exit r)))))))))))))))))))
+                                (should= 0 (:exit r))))))))))))))))))
 
 ;; ── Spawn Config ──
 
@@ -147,30 +144,23 @@
                            (catch Exception _ nil))]
       (if cron-output
         (should-contain "braids" cron-output)
-        (should true)))) ;; skip if openclaw not in PATH
+        (should true))))
 
   (it "active projects have valid spawn config (skipped if no registry)"
-    (when (fs/exists? registry)
-      (let [content (slurp-safe registry)
-            lines (str/split-lines (or content ""))
-            data-lines (->> lines (filter #(str/includes? % "|")) (drop 2) (remove #(str/starts-with? (str/trim %) "|-")))]
-        (doseq [line data-lines]
-          (let [cols (->> (str/split line #"\|") (map str/trim) (remove str/blank?))
-                [slug status _priority path] cols
-                resolved (str/replace (or path "") "~" home)]
-            (when (and slug (= status "active"))
-              (let [pmd-path (cond
-                               (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
-                               (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
-                               :else (str resolved "/PROJECT.md"))]
-                (when (fs/exists? pmd-path)
-                  (let [pmd (slurp pmd-path)]
-                    ;; MaxWorkers
-                    (let [mw (some-> (re-find #"MaxWorkers.*?(\d+)" pmd) second)]
-                      (when mw (should (pos? (parse-long mw)))))
-                    ;; Channel (optional — some projects skip notifications)
-                    ;; just verify it's parseable if present
-                    ;; iteration-complete mention
-                    (let [ic-line (some->> (str/split-lines pmd) (filter #(str/includes? % "iteration-complete")) first)]
-                      (when (and ic-line (re-find #"(?i)on" ic-line))
-                        (should (re-find #"mention.*<@\d+>" ic-line))))))))))))))
+    (when-let [reg (load-registry)]
+      (doseq [{:keys [slug status path]} (:projects reg)]
+        (let [resolved (resolve-path path)]
+          (when (and slug (= status :active))
+            (let [pmd-path (cond
+                             (fs/exists? (str resolved "/.braids/PROJECT.md")) (str resolved "/.braids/PROJECT.md")
+                             (fs/exists? (str resolved "/.project/PROJECT.md")) (str resolved "/.project/PROJECT.md")
+                             :else (str resolved "/PROJECT.md"))]
+              (when (fs/exists? pmd-path)
+                (let [pmd (slurp pmd-path)]
+                  ;; MaxWorkers
+                  (let [mw (some-> (re-find #"MaxWorkers.*?(\d+)" pmd) second)]
+                    (when mw (should (pos? (parse-long mw)))))
+                  ;; iteration-complete mention
+                  (let [ic-line (some->> (str/split-lines pmd) (filter #(str/includes? % "iteration-complete")) first)]
+                    (when (and ic-line (re-find #"(?i)on" ic-line))
+                      (should (re-find #"mention.*<@\d+>" ic-line)))))))))))))

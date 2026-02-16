@@ -28,7 +28,7 @@
 
   (context "File Format Subsections"
     (it "documents all file formats"
-      (doseq [fmt ["registry.md" "PROJECT.md" "ITERATION.md" "STATUS.md" ".orchestrator-state.json"]]
+      (doseq [fmt ["registry.edn" "PROJECT.md" "ITERATION.md" "STATUS.md" ".orchestrator-state.json"]]
         (should-contain fmt content)))
     (it "does not document RETRO.md (removed feature)"
       (should-not (re-find #"### \d+\.\d+ RETRO\.md" content)))
