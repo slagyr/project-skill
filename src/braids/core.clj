@@ -11,7 +11,9 @@
             [braids.status-io :as status-io]
             [braids.migration-io :as mig-io]
             [braids.new-io :as new-io]
-            [braids.init-io :as init-io]))
+            [braids.init-io :as init-io]
+            [braids.config :as config]
+            [braids.config-io :as config-io]))
 
 (def commands
   {"list"      {:command :list      :doc "Show projects from registry"}
@@ -23,6 +25,7 @@
    "migrate"   {:command :migrate   :doc "Migrate markdown configs to EDN format"}
    "new"       {:command :new       :doc "Create a new project"}
    "init"      {:command :init      :doc "First-time setup for braids"}
+   "config"    {:command :config    :doc "Get/set/list braids configuration"}
    "help"      {:command :help      :doc "Show this help message"}})
 
 (defn help-text []
@@ -105,6 +108,26 @@
                  result (new-io/run-new args)]
              (println (:message result))
              (:exit result))
+      :config (let [args (:args (dispatch args))
+                    sub (first args)
+                    sub-args (rest args)]
+                (case sub
+                  "list" (do (println (config/config-list (config-io/load-config))) 0)
+                  "get" (if (empty? sub-args)
+                          (do (println "Usage: braids config get <key>") 1)
+                          (let [result (config/config-get (config-io/load-config) (first sub-args))]
+                            (if (:ok result)
+                              (do (println (:ok result)) 0)
+                              (do (println (:error result)) 1))))
+                  "set" (if (< (count sub-args) 2)
+                          (do (println "Usage: braids config set <key> <value>") 1)
+                          (let [cfg (config-io/load-config)
+                                updated (config/config-set cfg (first sub-args) (second sub-args))]
+                            (config-io/save-config! updated)
+                            (println (str (first sub-args) " = " (second sub-args)))
+                            0))
+                  ;; no subcommand or unknown
+                  (do (println (config/config-help)) 0)))
       :migrate (let [args (:args (dispatch args))
                      dry-run? (some #{"--dry-run"} args)]
                  (let [{:keys [report dry-run?]} (mig-io/run-migrate {:dry-run? dry-run?})]
