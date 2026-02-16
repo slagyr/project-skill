@@ -17,7 +17,7 @@
 
 (def defaults
   {:max-workers 1
-   :worker-timeout 3600
+   :worker-timeout 1800
    :checkin :on-demand
    :channel nil
    :notifications default-notifications})

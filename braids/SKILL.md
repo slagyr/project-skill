@@ -68,7 +68,7 @@ Structured config only — no prose. Goal, guardrails, and conventions live in t
  :checkin :on-demand
  :channel "discord-channel-id"
  :max-workers 1
- :worker-timeout 3600
+ :worker-timeout 1800
  :notifications {:iteration-start true
                  :bead-start true
                  :bead-complete true
@@ -293,7 +293,7 @@ The orchestrator detects zombies using these criteria (in priority order):
 
 1. **Non-running status** — sessions with status `completed`, `failed`, `error`, or `stopped` are excluded from the worker count
 2. **Closed bead** — if the bead id from the session label is already closed, the worker is done but the session lingered
-3. **Excessive runtime** — sessions running longer than 60 minutes are treated as likely zombies
+3. **Excessive runtime** — sessions running longer than the project's `worker-timeout` (default 30 minutes) are treated as likely zombies
 
 When a zombie is detected, the orchestrator kills the session and sends a brief notification to the project's Channel (if `blocker` notifications are enabled).
 

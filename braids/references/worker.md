@@ -20,7 +20,7 @@ Use `bd show <bead-id>` to get the bead title and details.
    - **Channel** — where to send notifications. If missing, skip notifications silently
    - **MaxWorkers**, **Priority**, and any other project-level settings
 
-   **Format tolerance:** If any field is missing from config.edn, use its default value. Never fail or block because of a missing field — degrade gracefully. Key defaults: `:max-workers` → 1, `:worker-timeout` → 3600, `:autonomy` → `:full`, `:priority` → `:normal`, `:checkin` → `:on-demand`, `:channel` → nil (skip notifications), `:notifications` → all events `true`. Unknown fields → ignore.
+   **Format tolerance:** If any field is missing from config.edn, use its default value. Never fail or block because of a missing field — degrade gracefully. Key defaults: `:max-workers` → 1, `:worker-timeout` → 1800, `:autonomy` → `:full`, `:priority` → `:normal`, `:checkin` → `:on-demand`, `:channel` → nil (skip notifications), `:notifications` → all events `true`. Unknown fields → ignore.
 2. **Read `AGENTS.md`** in the workspace root (`~/.openclaw/workspace/AGENTS.md`) if it exists — for workspace-wide conventions and safety rules
 3. **Read `AGENTS.md`** in the project root — for goal, guardrails, and project-specific conventions. (If you arrived here *via* the project's AGENTS.md, you've already read it.)
 4. **Read the iteration's `iteration.edn`** (`.braids/iterations/<N>/iteration.edn`) — for iteration-level stories, notes, and status
@@ -139,3 +139,13 @@ Check the **Notifications** table in `.braids/config.edn`. Events:
 If the Notifications table is missing, treat all events as `on`.
 
 **Mentions:** If a Notify value contains `mention <@user-ref>` (e.g., `on (mention <@123456>)`), include that mention in the notification message. This triggers phone alerts on supported platforms (Discord, Slack, etc.).
+
+## Exit Cleanly
+
+**This is critical.** Worker sessions that linger waste resources and block future spawns.
+
+- After completing or blocking the bead, **stop immediately**. Do not loop, poll, or wait for further instructions.
+- Your final action should be the git push (on success) or the blocker notification (on failure). Then end your session.
+- Do not start additional beads — each worker handles exactly one bead.
+- Do not perform background work, heartbeats, or maintenance tasks.
+- If you finish early, that's good — exit anyway. The orchestrator will spawn new workers as needed.

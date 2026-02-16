@@ -60,7 +60,7 @@
         (should= :full (:autonomy config))
         (should= :on-demand (:checkin config))
         (should= 1 (:max-workers config))
-        (should= 3600 (:worker-timeout config))
+        (should= 1800 (:worker-timeout config))
         (should= nil (:channel config))
         (should-not-contain :goal config)
         (should-not-contain :guardrails config)

@@ -103,7 +103,7 @@
             beads {"proj" [{:id "proj-abc" :title "Do stuff" :priority "P1"}]}
             workers {}
             result (orch/tick registry configs iterations beads workers {})]
-        (should= 3600 (:worker-timeout (first (:spawns result))))))
+        (should= 1800 (:worker-timeout (first (:spawns result))))))
 
     (it "includes notification-mentions in spawn when present"
       (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}

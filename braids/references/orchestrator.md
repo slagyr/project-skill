@@ -14,7 +14,7 @@ From the session list, identify zombie sessions — worker sessions that should 
 
 1. **Session not running** — status is `completed`, `failed`, `error`, `stopped`, etc.
 2. **Bead already closed** — the bead id in the label (`project:<slug>:<bead-id>`) is closed (check via `bd show <bead-id>`)
-3. **Excessive runtime** — running longer than the project's WorkerTimeout (default 3600s)
+3. **Excessive runtime** — running longer than the project's WorkerTimeout (default 1800s)
 
 Always check bead status before applying runtime threshold. A long-running session on an open bead is probably still working.
 
@@ -42,7 +42,7 @@ This handles all the heavy lifting: loading the registry, finding active iterati
       "channel": "123456",
       "path": "~/Projects/my-project",
       "label": "project:my-project:my-project-abc",
-      "worker_timeout": 3600
+      "worker_timeout": 1800
     }
   ]
 }
@@ -69,9 +69,15 @@ sessions_spawn(
   task: "Project: <path>\nBead: <bead>\nIteration: <iteration>\nChannel: <channel>",
   label: "<label>",
   runTimeoutSeconds: <worker_timeout>,
-  cleanup: "delete"
+  cleanup: "delete",
+  thinking: "low"
 )
 ```
+
+Key spawn parameters:
+- **`runTimeoutSeconds`** — hard kill after this many seconds (default 1800 = 30 min). Prevents zombie sessions from lingering indefinitely.
+- **`cleanup: "delete"`** — automatically removes the session after completion. Without this, finished sessions count toward `MaxWorkers` and block new spawns.
+- **`thinking: "low"`** — workers don't need deep reasoning; keeps cost and latency down.
 
 The spawn message is intentionally minimal. The worker reads `AGENTS.md` in the project directory for full onboarding.
 

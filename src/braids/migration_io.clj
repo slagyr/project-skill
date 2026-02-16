@@ -50,10 +50,12 @@
                              (:projects reg))
         all-actions (concat actions iter-actions)]
     (when-not dry-run?
-      (doseq [{:keys [path content]} all-actions]
+      (doseq [{:keys [type path content]} all-actions]
         (let [p (expand-path path)]
-          (fs/create-dirs (fs/parent p))
-          (spit p content))))
+          (case type
+            :delete-file (when (fs/exists? p) (fs/delete p))
+            (do (fs/create-dirs (fs/parent p))
+                (spit p content))))))
     {:actions (vec all-actions)
      :report (mig/format-migration-report (vec all-actions))
      :dry-run? dry-run?}))

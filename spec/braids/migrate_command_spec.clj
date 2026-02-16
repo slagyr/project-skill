@@ -115,4 +115,72 @@
       (should-contain "foo" (mig/format-migration-report actions))))
 
   (it "reports nothing to do when no actions"
-    (should-contain "Nothing to migrate" (mig/format-migration-report []))))
+    (should-contain "Nothing to migrate" (mig/format-migration-report [])))
+
+  (it "plans deletion of PROJECT.md after migration to config.edn"
+    (let [state-home "/tmp/test-state"
+          registry-md (str "# Projects\n\n"
+                           "| Slug | Status | Priority | Path |\n"
+                           "|------|--------|----------|------|\n"
+                           "| foo | active | normal | /projects/foo |\n")
+          project-md (str "# Foo\n\n"
+                          "- **Status:** active\n"
+                          "- **Priority:** normal\n"
+                          "- **Autonomy:** full\n")
+          fs-state {"/tmp/test-state/registry.md" registry-md
+                    "/tmp/test-state/registry.edn" nil
+                    "/projects/foo/.braids/PROJECT.md" project-md
+                    "/projects/foo/.braids/config.edn" nil
+                    "/projects/foo/.braids/project.edn" nil}
+          actions (mig/plan-migration {:state-home state-home
+                                       :read-file (fn [p] (get fs-state p))
+                                       :file-exists? (fn [p] (some? (get fs-state p)))})]
+      (should-contain {:type :delete-file :path "/projects/foo/.braids/PROJECT.md"}
+                      (map #(select-keys % [:type :path]) actions))))
+
+  (it "plans deletion of legacy .project/PROJECT.md after migration"
+    (let [state-home "/tmp/test-state"
+          project-md (str "# Bar\n\n"
+                          "- **Status:** active\n"
+                          "- **Priority:** normal\n"
+                          "- **Autonomy:** full\n")
+          fs-state {"/tmp/test-state/registry.edn" (pr-str {:projects [{:slug "bar" :status :active :priority :normal :path "/projects/bar"}]})
+                    "/projects/bar/.braids/config.edn" nil
+                    "/projects/bar/.braids/project.edn" nil
+                    "/projects/bar/.braids/PROJECT.md" nil
+                    "/projects/bar/.project/PROJECT.md" project-md}
+          actions (mig/plan-migration {:state-home state-home
+                                       :read-file (fn [p] (get fs-state p))
+                                       :file-exists? (fn [p] (some? (get fs-state p)))})]
+      (should-contain {:type :delete-file :path "/projects/bar/.project/PROJECT.md"}
+                      (map #(select-keys % [:type :path]) actions))))
+
+  (it "plans deletion of legacy project.edn after migration to config.edn"
+    (let [state-home "/tmp/test-state"
+          fs-state {"/tmp/test-state/registry.edn" (pr-str {:projects [{:slug "baz" :status :active :priority :normal :path "/projects/baz"}]})
+                    "/projects/baz/.braids/config.edn" nil
+                    "/projects/baz/.braids/project.edn" (pr-str {:name "Baz" :status :active :priority :normal :autonomy :full})}
+          actions (mig/plan-migration {:state-home state-home
+                                       :read-file (fn [p] (get fs-state p))
+                                       :file-exists? (fn [p] (some? (get fs-state p)))})]
+      (should-contain {:type :delete-file :path "/projects/baz/.braids/project.edn"}
+                      (map #(select-keys % [:type :path]) actions))))
+
+  (it "plans deletion of registry.md after migration to registry.edn"
+    (let [state-home "/tmp/test-state"
+          registry-md (str "# Projects\n\n"
+                           "| Slug | Status | Priority | Path |\n"
+                           "|------|--------|----------|------|\n"
+                           "| foo | active | normal | /projects/foo |\n")
+          fs-state {"/tmp/test-state/registry.md" registry-md
+                    "/tmp/test-state/registry.edn" nil}
+          actions (mig/plan-migration {:state-home state-home
+                                       :read-file (fn [p] (get fs-state p))
+                                       :file-exists? (fn [p] (some? (get fs-state p)))})]
+      (should-contain {:type :delete-file :path "/tmp/test-state/registry.md"}
+                      (map #(select-keys % [:type :path]) actions))))
+
+  (it "includes delete-file in migration report"
+    (let [actions [{:type :write-config-edn :path "/proj/.braids/config.edn" :slug "proj"}
+                   {:type :delete-file :path "/proj/.braids/PROJECT.md"}]]
+      (should-contain "Delete" (mig/format-migration-report actions)))))

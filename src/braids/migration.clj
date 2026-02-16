@@ -119,6 +119,8 @@
                      (swap! actions conj {:type :write-registry-edn
                                           :path registry-edn-path
                                           :content edn-str})
+                     (swap! actions conj {:type :delete-file
+                                          :path registry-md-path})
                      parsed)
 
                    :else {:projects []})]
@@ -138,7 +140,9 @@
               (swap! actions conj {:type :write-config-edn
                                    :path config-edn-path
                                    :slug slug
-                                   :content content}))
+                                   :content content})
+              (swap! actions conj {:type :delete-file
+                                   :path legacy-edn-path}))
 
             ;; Migrate from markdown
             :else
@@ -157,7 +161,9 @@
                   (swap! actions conj {:type :write-config-edn
                                        :path config-edn-path
                                        :slug slug
-                                       :content edn-str})))))))
+                                       :content edn-str})
+                  (swap! actions conj {:type :delete-file
+                                       :path md-source}))))))))
     @actions))
 
 (defn plan-iteration-migrations
@@ -192,5 +198,6 @@
                :write-registry-edn (str "  ✓ Write registry.edn → " path)
                :write-config-edn (str "  ✓ Write config.edn for " slug " → " path)
                :write-iteration-edn (str "  ✓ Write iteration.edn for iteration " iteration " → " path)
+               :delete-file (str "  ✗ Delete " path)
                (str "  ? Unknown action: " type))))
          "\n")))

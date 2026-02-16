@@ -62,7 +62,7 @@
   (it "MaxWorkers missing (default 1 applies)"
     (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/config.edn")))]
       (should-not (contains? parsed :max-workers))))
-  (it "WorkerTimeout missing (default 3600 applies)"
+  (it "WorkerTimeout missing (default 1800 applies)"
     (let [parsed (clojure.edn/read-string (slurp (str test-project "/.braids/config.edn")))]
       (should-not (contains? parsed :worker-timeout))))
   (it "Channel missing (default: skip notifications)"

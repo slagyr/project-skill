@@ -29,7 +29,7 @@
    :checkin (or checkin :on-demand)
    :channel channel
    :max-workers (or max-workers 1)
-   :worker-timeout (or worker-timeout 3600)
+   :worker-timeout (or worker-timeout 1800)
    :notifications pc/default-notifications})
 
 (defn build-registry-entry [{:keys [slug priority]} path]

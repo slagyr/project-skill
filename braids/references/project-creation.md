@@ -28,7 +28,7 @@ Propose these defaults and let the human override:
 | Autonomy | full | full / ask-first / research-only |
 | Checkin | on-demand | daily / weekly / on-demand |
 | MaxWorkers | 1 | Max parallel worker sessions |
-| WorkerTimeout | 3600 | Seconds before worker is killed |
+| WorkerTimeout | 1800 | Seconds before worker is killed |
 
 Ask if they want a **Discord channel** created for notifications. If yes, ask for a category (or suggest one). If they already have a channel, get the id.
 
@@ -76,7 +76,7 @@ Write `.braids/config.edn` using the information gathered — **not** a template
  :checkin :<from step 2>
  :channel "<channel id from step 3>"
  :max-workers <from step 2>
- :worker-timeout 3600
+ :worker-timeout 1800
  :notifications {:iteration-start true
                  :bead-start true
                  :bead-complete true

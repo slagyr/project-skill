@@ -56,7 +56,7 @@
             result (mig/parse-project-md md)]
         (should= "Minimal" (:name result))
         (should= 1 (:max-workers result))
-        (should= 3600 (:worker-timeout result))
+        (should= 1800 (:worker-timeout result))
         (should= :on-demand (:checkin result))))
 
     (it "parses notifications table"

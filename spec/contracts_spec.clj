@@ -38,8 +38,8 @@
   (context "Key Defaults"
     (it "default max-workers=1"
       (should (re-find #"max-workers.*1" content)))
-    (it "default worker-timeout=3600"
-      (should (re-find #"worker-timeout.*3600" content)))
+    (it "default worker-timeout=1800"
+      (should (re-find #"worker-timeout.*1800" content)))
     (it "default autonomy=full"
       (should (re-find #"(?i)autonomy.*full" content)))
     (it "default priority=normal"

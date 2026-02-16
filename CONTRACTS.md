@@ -23,7 +23,7 @@ This document defines the invariants that the orchestrator, worker, and file for
 - **Required fields:** `:name`, `:status`, `:priority`, `:autonomy` (all others have defaults)
 - **Defaults when missing:**
   - `:max-workers` → 1
-  - `:worker-timeout` → 3600
+  - `:worker-timeout` → 1800
   - `:autonomy` → `:full`
   - `:priority` → `:normal`
   - `:checkin` → `:on-demand`

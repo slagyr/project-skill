@@ -24,7 +24,7 @@
       (let [edn-str (pr-str {:name "Minimal" :status :active :priority :normal :autonomy :full})
             result (pc/parse-project-config edn-str)]
         (should= 1 (:max-workers result))
-        (should= 3600 (:worker-timeout result))
+        (should= 1800 (:worker-timeout result))
         (should= :on-demand (:checkin result))
         (should= nil (:channel result))))
 
@@ -110,7 +110,7 @@
                  :checkin :on-demand
                  :channel nil
                  :max-workers 1
-                 :worker-timeout 3600
+                 :worker-timeout 1800
                  :notifications {:iteration-start true
                                  :bead-start true
                                  :bead-complete true
