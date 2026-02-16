@@ -4,6 +4,18 @@ Autonomous background project management for OpenClaw agents. Enables long-runni
 
 ## Install
 
+### Homebrew (macOS)
+
+```bash
+brew install slagyr/tap/braids
+```
+
+This installs `braids` on your PATH along with its dependencies (`bb` and `bd`).
+
+### Manual Install (all platforms)
+
+For non-Mac users or if you prefer a manual setup:
+
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/slagyr/project-skill/main/install.sh)
 ```
@@ -13,6 +25,10 @@ This clones the repo to `~/.openclaw/braids-skill` and symlinks the skill into O
 ```bash
 BRAIDS_INSTALL_DIR=~/my/path bash <(curl -fsSL https://raw.githubusercontent.com/slagyr/project-skill/main/install.sh)
 ```
+
+**Prerequisites for manual install:** [Babashka](https://github.com/babashka/babashka) (`bb`) and [Beads](https://github.com/steveyegge/beads) (`bd`) must be installed separately.
+
+### Post-Install Setup
 
 Once installed, ask your agent to "set up braids" to complete first-time setup (verify dependencies, create braids home, configure the orchestrator cron, and scaffold your first project). See [`references/init.md`](braids/references/init.md) for details.
 
