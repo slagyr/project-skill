@@ -2,6 +2,10 @@
 
 This project is managed by the **projects** skill. Read `.project/PROJECT.md` for goals, guardrails, and settings.
 
+## Development Process
+
+**Read `.project/TDD.md` before writing any code.** All development on this project follows strict Test-Driven Development (RED → GREEN → REFACTOR). No production code without a failing test.
+
 ## How to Work on This Project
 
 **If you were spawned by the orchestrator** (your task message includes a bead id):
