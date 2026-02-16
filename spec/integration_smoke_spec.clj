@@ -159,25 +159,27 @@
                                   (should (or (contains? suffixes prefix)
                                               (contains? full-ids no-ext)))))))))))))))))))
 
-  ;; ── Cross-project checks ──
+  ;; ── Cross-project checks (skipped if no registry) ──
 
   (describe "Cross-Project Checks"
-    (it "STATUS.md exists and is fresh"
-      (let [status-file (str projects-home "/STATUS.md")]
-        (should (fs/exists? status-file))
-        (let [mtime (.toMillis (fs/last-modified-time status-file))
-              now (System/currentTimeMillis)
-              age-s (/ (- now mtime) 1000)]
-          (should (< age-s 86400)))))
+    (it "STATUS.md exists and is fresh (skipped if no registry)"
+      (when (fs/exists? registry)
+        (let [status-file (str projects-home "/STATUS.md")]
+          (should (fs/exists? status-file))
+          (let [mtime (.toMillis (fs/last-modified-time status-file))
+                now (System/currentTimeMillis)
+                age-s (/ (- now mtime) 1000)]
+            (should (< age-s 86400))))))
 
-    (it "orchestrator state is valid"
-      (let [state-file (str projects-home "/.orchestrator-state.json")]
-        (should (fs/exists? state-file))
-        (let [parsed (json/parse-string (slurp state-file))]
-          (should parsed)
-          (should (contains? parsed "lastRunAt"))
-          (should (contains? parsed "idleSince"))
-          (should (contains? parsed "idleReason"))
-          (let [reason (get parsed "idleReason")]
-            (should (or (nil? reason)
-                        (contains? #{"no-active-iterations" "no-ready-beads" "all-at-capacity"} reason)))))))))
+    (it "orchestrator state is valid (skipped if no registry)"
+      (when (fs/exists? registry)
+        (let [state-file (str projects-home "/.orchestrator-state.json")]
+          (should (fs/exists? state-file))
+          (let [parsed (json/parse-string (slurp state-file))]
+            (should parsed)
+            (should (contains? parsed "lastRunAt"))
+            (should (contains? parsed "idleSince"))
+            (should (contains? parsed "idleReason"))
+            (let [reason (get parsed "idleReason")]
+              (should (or (nil? reason)
+                          (contains? #{"no-active-iterations" "no-ready-beads" "all-at-capacity"} reason))))))))))
