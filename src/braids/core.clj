@@ -1,5 +1,7 @@
 (ns braids.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [braids.ready :as ready]
+            [braids.ready-io :as ready-io]))
 
 (def commands
   {"ready" {:command :ready :doc "List beads ready to work"}
@@ -41,5 +43,8 @@
                    (println)
                    (println (help-text))
                    1)
+      :ready (let [result (ready-io/gather-and-compute)]
+               (println (ready/format-ready-output result))
+               0)
       ;; Default for unimplemented commands
       (do (println (str "Command '" (name command) "' not yet implemented.")) 0))))
