@@ -54,3 +54,34 @@ Build and refine the "braids" OpenClaw skill — an autonomous project managemen
 - **Test-first development:** Write or update tests BEFORE implementing a feature or fix. Every bead that adds or changes behavior must include a corresponding test. Tests are written in **speclj on Babashka** — no bash test scripts. Run the test suite before closing a bead — all specs must pass.
 - **No untested changes:** If you can't write a test for it, document why in the deliverable. Structural tests, simulation tests, and contract checks are all valid test types.
 - **Channel agent — beads only:** The channel/main session agent must NOT edit project files (SKILL.md, worker.md, orchestrator.md, config.edn, CONTRACTS.md, etc.) directly. It should only create beads, plan iterations, activate iterations, and review deliverables. All file changes go through beads assigned to workers.
+
+## Definition of Done
+
+A bead is **not done** until all of the following are satisfied:
+
+1. **Unit tests pass:** Run the full test suite (`bb test`) — all specs green
+2. **CLI verification:** Test the actual `bd` CLI with real commands against a test project. Do not assume code changes work just because tests pass — run the CLI and confirm the output is correct
+3. **Integration check:** If the change affects workflow (worker, orchestrator, iteration transitions), verify end-to-end by simulating the workflow with real CLI commands
+4. **Document what you tested:** In the deliverable, include the actual commands you ran and their output (text, not screenshots). Example:
+   ```
+   ## Verification
+   $ bd ready
+   (output)
+   $ bd show projects-skill-xyz
+   (output)
+   ```
+
+## Acceptance Criteria Standards
+
+Beads should have **specific, verifiable** acceptance criteria. Avoid vague criteria like "it works" or "looks good." Good criteria:
+
+- State the exact expected behavior: "Running `bd list` shows status in color when output is a TTY"
+- Include edge cases: "Running `bd ready` with no open beads prints 'No ready beads' and exits 0"
+- Specify what NOT to break: "Existing `bd list` output format unchanged for non-TTY"
+
+## Safe Testing Practices
+
+- **Use test projects** for integration testing — never run destructive experiments against real project data
+- Create temporary test projects with `bd init` in `/tmp` or a scratch directory when needed
+- When testing against this project, use read-only commands (`bd list`, `bd show`, `bd ready`) — do not create/delete/modify real beads for testing purposes
+- If a test requires modifying state, set up and tear down in an isolated environment
