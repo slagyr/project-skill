@@ -1,59 +1,117 @@
 (ns braids.list-spec
   (:require [speclj.core :refer :all]
-            [braids.list :as list]))
+            [braids.list :as list]
+            [clojure.string :as str]))
+
+(def sample-projects
+  [{:slug "alpha" :status :active :priority :high :path "~/Projects/alpha"
+    :iteration {:number "009" :stats {:total 3 :closed 1 :percent 33}}
+    :workers 1 :max-workers 2}
+   {:slug "beta" :status :paused :priority :normal :path "~/Projects/beta"
+    :iteration nil :workers 0 :max-workers 1}
+   {:slug "gamma" :status :active :priority :low :path "~/Projects/gamma"
+    :iteration {:number "002" :stats {:total 2 :closed 2 :percent 100}}
+    :workers 0 :max-workers 1}])
+
+(defn strip-ansi [s]
+  (str/replace s #"\033\[[0-9;]*m" ""))
 
 (describe "braids.list"
 
   (describe "format-list"
 
-    (it "returns 'No projects registered.' for empty registry"
+    (it "returns 'No projects registered.' for empty projects"
       (should= "No projects registered." (list/format-list {:projects []})))
 
     (it "returns 'No projects registered.' for nil projects"
       (should= "No projects registered." (list/format-list {:projects nil})))
 
-    (it "formats a single project as a table"
-      (let [reg {:projects [{:slug "my-project"
-                              :status :active
-                              :priority :high
-                              :path "~/Projects/my-project"}]}
-            output (list/format-list reg)]
-        (should-contain "my-project" output)
-        (should-contain "active" output)
-        (should-contain "high" output)
-        (should-contain "~/Projects/my-project" output)))
-
-    (it "formats multiple projects"
-      (let [reg {:projects [{:slug "alpha" :status :active :priority :high :path "~/Projects/alpha"}
-                             {:slug "beta" :status :paused :priority :low :path "~/Projects/beta"}]}
-            output (list/format-list reg)]
-        (should-contain "alpha" output)
-        (should-contain "beta" output)
-        (should-contain "paused" output)))
-
-    (it "includes a header row"
-      (let [reg {:projects [{:slug "test" :status :active :priority :normal :path "~/Projects/test"}]}
-            output (list/format-list reg)]
+    (it "includes all column headers"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
         (should-contain "SLUG" output)
         (should-contain "STATUS" output)
         (should-contain "PRIORITY" output)
+        (should-contain "ITERATION" output)
+        (should-contain "PROGRESS" output)
+        (should-contain "WORKERS" output)
         (should-contain "PATH" output)))
 
-    (it "aligns columns"
-      (let [reg {:projects [{:slug "short" :status :active :priority :high :path "~/a"}
-                             {:slug "a-very-long-slug" :status :paused :priority :low :path "~/b"}]}
-            lines (clojure.string/split-lines (list/format-list reg))]
-        ;; Header and two data rows (plus separator)
-        (should= 4 (count lines)))))
+    (it "shows all project slugs"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
+        (should-contain "alpha" output)
+        (should-contain "beta" output)
+        (should-contain "gamma" output)))
+
+    (it "shows iteration numbers"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
+        (should-contain "009" output)
+        (should-contain "002" output)))
+
+    (it "shows progress percentages"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
+        (should-contain "1/3 (33%)" output)
+        (should-contain "2/2 (100%)" output)))
+
+    (it "shows worker counts"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
+        (should-contain "1/2" output)
+        (should-contain "0/1" output)))
+
+    (it "shows dash for projects without iteration"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))]
+        ;; beta has no iteration - should show dash
+        (let [lines (str/split-lines output)
+              beta-line (first (filter #(str/includes? % "beta") lines))]
+          (should-not-be-nil beta-line)
+          ;; Should have dashes for iteration and progress
+          (should-contain "—" beta-line))))
+
+    (it "has correct number of lines (header + separator + data rows)"
+      (let [output (strip-ansi (list/format-list {:projects sample-projects}))
+            lines (str/split-lines output)]
+        (should= 5 (count lines)))) ;; header + separator + 3 rows
+
+    (it "colorizes active status as green"
+      (let [output (list/format-list {:projects [(first sample-projects)]})]
+        ;; green ANSI code is \033[32m
+        (should-contain "\033[32m" output)))
+
+    (it "colorizes high priority as red"
+      (let [output (list/format-list {:projects [(first sample-projects)]})]
+        ;; red ANSI code is \033[31m
+        (should-contain "\033[31m" output)))
+
+    (it "colorizes low priority as yellow"
+      (let [output (list/format-list {:projects [(nth sample-projects 2)]})]
+        ;; yellow ANSI code is \033[33m
+        (should-contain "\033[33m" output)))
+
+    (it "colorizes paused status as yellow"
+      (let [output (list/format-list {:projects [(second sample-projects)]})]
+        (should-contain "\033[33m" output)))
+
+    (it "colorizes 100% progress as green"
+      (let [output (list/format-list {:projects [(nth sample-projects 2)]})]
+        ;; gamma has 100% progress - should be green
+        (should-contain "\033[32m" output))))
 
   (describe "format-list-json"
 
     (it "returns JSON array of projects"
-      (let [reg {:projects [{:slug "test" :status :active :priority :normal :path "~/Projects/test"}]}
-            output (list/format-list-json reg)]
+      (let [output (list/format-list-json {:projects sample-projects})]
         (should-contain "\"slug\"" output)
-        (should-contain "\"test\"" output)
+        (should-contain "\"alpha\"" output)
         (should-contain "\"active\"" output)))
+
+    (it "includes iteration data in JSON"
+      (let [output (list/format-list-json {:projects sample-projects})]
+        (should-contain "\"iteration\"" output)
+        (should-contain "\"009\"" output)))
+
+    (it "includes worker data in JSON"
+      (let [output (list/format-list-json {:projects sample-projects})]
+        (should-contain "\"workers\"" output)
+        (should-contain "\"max_workers\"" output)))
 
     (it "returns empty array for no projects"
       (should= "[]" (list/format-list-json {:projects []})))))

@@ -8,7 +8,6 @@
             [braids.orch-io :as orch-io]
             [braids.list-io :as list-io]
             [braids.iteration-io :as iter-io]
-            [braids.status-io :as status-io]
             [braids.new-io :as new-io]
             [braids.init-io :as init-io]
             [braids.config :as config]
@@ -27,19 +26,29 @@
    "config"    {:command :config    :doc "Get/set/list braids configuration"}
    "help"      {:command :help      :doc "Show this help message"}})
 
+(def ^:private ansi
+  {:bold-white  "\033[1;37m"
+   :bold-cyan   "\033[1;36m"
+   :bold-yellow "\033[1;33m"
+   :bold-blue   "\033[1;34m"
+   :reset       "\033[0m"})
+
+(defn- c [text color]
+  (str (get ansi color "") text (:reset ansi)))
+
 (defn help-text []
   (str/join "\n"
-    ["braids — CLI for the braids skill"
+    [(str (c "braids" :bold-white) " — CLI for the braids skill")
      ""
-     "Usage: braids <command> [args...]"
+     (str (c "Usage:" :bold-cyan) " braids <command> [args...]")
      ""
-     "Commands:"
+     (c "Commands:" :bold-yellow)
      (str/join "\n"
        (for [[name {:keys [doc]}] (sort-by key commands)]
-         (format "  %-12s %s" name doc)))
+         (format "  %s%s" (c (format "%-12s" name) :bold-blue) doc)))
      ""
-     "Options:"
-     "  -h, --help   Show this help message"]))
+     (c "Options:" :bold-yellow)
+     (str "  " (c "-h, --help" :bold-blue) "   Show this help message")]))
 
 (defn dispatch [args]
   (let [first-arg (first args)

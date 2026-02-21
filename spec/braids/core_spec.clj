@@ -44,7 +44,27 @@
     (it "lists available commands"
       (let [text (core/help-text)]
         (should-contain "ready" text)
-        (should-contain "help" text))))
+        (should-contain "help" text)))
+
+    (it "uses bold white for the title"
+      (should-contain "\033[1;37mbraids" (core/help-text)))
+
+    (it "uses bold cyan for the usage line"
+      (should-contain "\033[1;36mUsage:" (core/help-text)))
+
+    (it "uses bold yellow for section headers"
+      (let [text (core/help-text)]
+        (should-contain "\033[1;33mCommands:" text)
+        (should-contain "\033[1;33mOptions:" text)))
+
+    (it "uses bold blue for command names"
+      (let [text (core/help-text)]
+        (should-contain "\033[1;34mready" text)
+        (should-contain "\033[1;34mhelp" text)
+        (should-contain "\033[1;34mlist" text)))
+
+    (it "resets color after each colored segment"
+      (should-contain "\033[0m" (core/help-text))))
 
   (describe "run"
 
