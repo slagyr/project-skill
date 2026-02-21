@@ -24,7 +24,6 @@ Resolve `BRAIDS_HOME` at the start of every session (default: `~/Projects`). All
 ```
 ~/.openclaw/braids/
   registry.edn                   # Master list of all projects
-  STATUS.md                      # Auto-generated progress dashboard (see references/status-dashboard.md)
 
 $BRAIDS_HOME/
   <project-slug>/                # Each project is its own git repo

@@ -62,13 +62,7 @@ This document defines the invariants that the orchestrator, worker, and file for
 - **One deliverable per bead** per iteration
 - **Required sections:** Summary (at minimum)
 
-### 1.5 STATUS.md
-
-- **Location:** `~/.openclaw/braids/STATUS.md`
-- **Auto-generated:** Overwritten every orchestrator run; never hand-edit
-- **Contains:** Timestamp, per-project summary with iteration status and bead counts
-
-### 1.6 Orchestrator Self-Disable
+### 1.5 Orchestrator Self-Disable
 
 When `orch-tick` returns an idle result, the JSON includes `"disable_cron": true`. The orchestrator agent must delete its cron job to achieve zero token usage. Re-activation is manual (e.g., when a new iteration is started).
 
@@ -104,9 +98,6 @@ Always check bead status before applying runtime threshold.
 - No workers spawned → set/preserve `idleSince`, set `idleReason`
 - `idleSince` is only set when transitioning from non-idle to idle; preserved across consecutive idle runs
 - Backoff intervals: `no-active-iterations` = 30min, `no-ready-beads` = 15min, `all-at-capacity` = 10min
-
-### 2.8 Status Dashboard
-STATUS.md is regenerated at the end of every full orchestrator run (not skipped runs).
 
 ---
 
@@ -161,7 +152,7 @@ Workers with `ask-first` autonomy must confirm via Channel before executing. `fu
 `~` always resolves to the user's home directory, never the agent workspace. Project files are never created inside `~/.openclaw/workspace/`.
 
 ### 4.2 BRAIDS_HOME Resolution
-`BRAIDS_HOME` defaults to `~/Projects`. Checked once per session. Agent infrastructure files (registry.edn, STATUS.md) live in `~/.openclaw/braids/`, not in `BRAIDS_HOME`.
+`BRAIDS_HOME` defaults to `~/Projects`. Checked once per session. Agent infrastructure files (registry.edn) live in `~/.openclaw/braids/`, not in `BRAIDS_HOME`.
 
 ### 4.3 Single Source of Truth
 - What to work on → `bd ready` (not manual lists)

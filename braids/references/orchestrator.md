@@ -91,10 +91,6 @@ If the tick result includes `"disable_cron": true`, the orchestrator should disa
 
 This ensures **zero token usage** during idle periods. To re-activate, set up the cron job again (see SKILL.md § Cron Integration).
 
-### 6. Generate Status Dashboard
-
-Generate `~/.openclaw/braids/STATUS.md` following `references/status-dashboard.md`.
-
-### 7. Done
+### 6. Done
 
 Do not do any bead work yourself. Just spawn and exit.

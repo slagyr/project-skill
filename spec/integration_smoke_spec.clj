@@ -156,15 +156,6 @@
   ;; ── Cross-project checks (skipped if no registry) ──
 
   (describe "Cross-Project Checks"
-    (it "STATUS.md exists and is fresh (skipped if no registry)"
-      (when (fs/exists? registry)
-        (let [status-file (str state-home "/STATUS.md")]
-          (should (fs/exists? status-file))
-          (let [mtime (.toMillis (fs/last-modified-time status-file))
-                now (System/currentTimeMillis)
-                age-s (/ (- now mtime) 1000)]
-            (should (< age-s 86400))))))
-
     (it "orchestrator self-disable: orch-tick idle results include disable-cron (skipped if no registry)"
       (when (fs/exists? registry)
         ;; Self-disable replaced .orchestrator-state.json — verify the tick contract

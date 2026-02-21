@@ -265,19 +265,9 @@
   (it "iteration commit format"
     (should (re-find #"^Complete iteration \d+$" "Complete iteration 1"))))
 
-;; ── Scenario 14: STATUS.md ──
+;; ── Scenario 14: Path Conventions ──
 
-(describe "Scenario 14: STATUS.md"
-  (it "STATUS.md is auto-generated"
-    (should-contain "Auto-generated" contracts))
-  (it "STATUS.md overwritten every run"
-    (should-contain "Overwritten every orchestrator run" contracts))
-  (it "STATUS.md never hand-edit"
-    (should-contain "never hand-edit" contracts)))
-
-;; ── Scenario 15: Path Conventions ──
-
-(describe "Scenario 15: Path Conventions"
+(describe "Scenario 14: Path Conventions"
   (it "~ resolves to user home"
     (should-contain "always resolves to the user's home directory" contracts))
   (it "BRAIDS_HOME default ~/Projects"
@@ -285,9 +275,9 @@
   (it "project files not in workspace"
     (should-contain "never created inside" contracts)))
 
-;; ── Scenario 16: Iteration Completion (simplified) ──
+;; ── Scenario 15: Iteration Completion (simplified) ──
 
-(describe "Scenario 16: Iteration Completion (simplified)"
+(describe "Scenario 15: Iteration Completion (simplified)"
   (it "worker.md documents simple iteration completion"
     (let [worker (slurp (str project-root "/braids/references/worker.md"))]
       (should (re-find #"Update iteration\.edn status to.*:complete" worker))))

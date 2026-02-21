@@ -55,7 +55,7 @@
     (should (fs/directory? (str skill-dir "/references"))))
   (it "all reference files exist"
     (doseq [ref ["orchestrator.md" "worker.md" "agents-template.md"
-                  "status-dashboard.md" "migration.md"]]
+                  "migration.md"]]
       (should (fs/exists? (str skill-dir "/references/" ref))))))
 
 ;; ── SKILL.md Format ──
