@@ -54,9 +54,8 @@
     (let [matches (files-containing project-root #"skills/projects")]
       (should= [] matches)))
 
-  (it "no mutable files reference '~/.openclaw/projects' state path (except migration.md)"
-    (let [matches (->> (files-containing project-root #"~/\.openclaw/projects[/\s\)]")
-                       (remove #(str/includes? % "migration.md")))]
+  (it "no mutable files reference '~/.openclaw/projects' state path"
+    (let [matches (files-containing project-root #"~/\.openclaw/projects[/\s\)]")]
       (should= [] matches)))
 
   (it "no mutable files reference 'the projects skill'"
@@ -80,9 +79,9 @@
   (it ".project directory does not exist"
     (should-not (fs/directory? (str project-root "/.project"))))
 
-  (it "no mutable files reference '.project/' as primary path (except migration/compat code)"
+  (it "no mutable files reference '.project/' as primary path (except compat/migration code)"
     (let [matches (->> (files-containing project-root #"\.project/")
-                       (remove #(str/includes? % "migration"))
+                       (remove #(str/includes? % "migration.md"))
                        ;; Source files with .project/ fallback for backward compatibility
                        (remove #(str/includes? % "ready_io.clj"))
                        (remove #(str/includes? % "orch_io.clj"))

@@ -58,66 +58,15 @@
         (should= :active (:status parsed))
         (should= [{:id "abc" :title "Thing"}] (:stories parsed)))))
 
-  (describe "migrate-iteration-md"
+  (describe "story-ids"
 
-    (it "converts ITERATION.md content to EDN map"
-      (let [md "# Iteration 009\n\nStatus: active\n\n## Stories\n- proj-abc: Do the thing\n- proj-def: Another thing\n\n## Guardrails\n- TDD\n\n## Notes\n- Theme: testing\n"
-            result (iter/migrate-iteration-md md)]
-        (should= "009" (:number result))
-        (should= :active (:status result))
-        (should= [{:id "proj-abc" :title "Do the thing"}
-                  {:id "proj-def" :title "Another thing"}]
-                 (:stories result))
-        (should= ["TDD"] (:guardrails result))
-        (should= ["Theme: testing"] (:notes result))))
+    (it "extracts ids from map stories"
+      (should= ["abc" "def"]
+               (iter/story-ids {:stories [{:id "abc" :title "A"} {:id "def" :title "B"}]})))
 
-    (it "handles ITERATION.md with no guardrails or notes"
-      (let [md "# Iteration 001\n\nStatus: planning\n\n## Stories\n"
-            result (iter/migrate-iteration-md md)]
-        (should= "001" (:number result))
-        (should= :planning (:status result))
-        (should= [] (:stories result))
-        (should-not (contains? result :guardrails))
-        (should-not (contains? result :notes))))
-
-    (it "handles bold status format"
-      (let [md "# Iteration 003\n\n- **Status:** active\n\n## Stories\n- abc: Thing\n"
-            result (iter/migrate-iteration-md md)]
-        (should= :active (:status result)))))
-
-  ;; Legacy parse functions (still needed for migration)
-  (describe "parse-iteration-stories (legacy)"
-
-    (it "extracts story ids and titles from ITERATION.md content"
-      (let [content "# Iteration 009\n\nStatus: active\n\n## Stories\n- proj-abc: Do the thing\n- proj-def: Another thing\n\n## Guardrails\n- TDD"
-            stories (iter/parse-iteration-stories content)]
-        (should= [{:id "proj-abc" :title "Do the thing"}
-                  {:id "proj-def" :title "Another thing"}]
-                 stories)))
-
-    (it "returns empty list when no stories section"
-      (should= [] (iter/parse-iteration-stories "# Iteration 001\n\nStatus: active\n")))
-
-    (it "handles stories with colons in titles"
-      (let [content "## Stories\n- proj-abc: foo: bar baz\n"
-            stories (iter/parse-iteration-stories content)]
-        (should= [{:id "proj-abc" :title "foo: bar baz"}] stories))))
-
-  (describe "parse-iteration-number (legacy)"
-
-    (it "extracts iteration number from header"
-      (should= "009" (iter/parse-iteration-number "# Iteration 009\n\nStatus: active")))
-
-    (it "returns nil when no header"
-      (should-be-nil (iter/parse-iteration-number "No header here"))))
-
-  (describe "parse-iteration-status (legacy)"
-
-    (it "extracts status"
-      (should= "active" (iter/parse-iteration-status "# Iteration 009\n\nStatus: active")))
-
-    (it "tolerates bold formatting"
-      (should= "active" (iter/parse-iteration-status "- **Status:** active"))))
+    (it "extracts ids from string stories"
+      (should= ["abc" "def"]
+               (iter/story-ids {:stories ["abc" "def"]}))))
 
   (describe "annotate-stories"
 
@@ -134,6 +83,26 @@
     (it "marks missing beads as unknown"
       (let [stories [{:id "proj-abc" :title "Do thing"}]
             result (iter/annotate-stories stories [])]
+        (should= "unknown" (:status (first result)))))
+
+    (it "handles string story ids (plain bead id format)"
+      (let [stories ["proj-abc" "proj-def"]
+            beads [{"id" "proj-abc" "status" "open" "priority" 1 "dependencies" []
+                    "title" "Do thing"}
+                   {"id" "proj-def" "status" "closed" "priority" 2 "dependencies" []
+                    "title" "Other thing"}]
+            result (iter/annotate-stories stories beads)]
+        (should= "proj-abc" (:id (first result)))
+        (should= "Do thing" (:title (first result)))
+        (should= "open" (:status (first result)))
+        (should= "proj-def" (:id (second result)))
+        (should= "Other thing" (:title (second result)))
+        (should= "closed" (:status (second result)))))
+
+    (it "handles string story ids with missing beads"
+      (let [stories ["proj-abc"]
+            result (iter/annotate-stories stories [])]
+        (should= "proj-abc" (:id (first result)))
         (should= "unknown" (:status (first result))))))
 
   (describe "completion-stats"

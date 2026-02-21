@@ -34,87 +34,37 @@
   (edn-format (select-keys data [:number :status :stories :guardrails :notes])))
 
 (defn story-ids
-  "Extract story ids from iteration data."
+  "Extract story ids from iteration data.
+   Handles both string ids and map entries."
   [iteration]
-  (mapv :id (:stories iteration)))
-
-;; --- Legacy markdown parsing (needed for migration) ---
-
-(defn parse-iteration-number [content]
-  (when-let [m (re-find #"#\s*Iteration\s+(\S+)" content)]
-    (second m)))
-
-(defn parse-iteration-status [content]
-  (when-let [m (re-find #"(?i)\*{0,2}Status:\*{0,2}\s*(\w+)" content)]
-    (str/lower-case (second m))))
-
-(defn parse-iteration-stories
-  "Extract story ids and titles from ITERATION.md content."
-  [content]
-  (let [lines (str/split-lines content)
-        in-stories (atom false)
-        results (atom [])]
-    (doseq [line lines]
-      (cond
-        (re-matches #"##\s+Stories\s*" line)
-        (reset! in-stories true)
-
-        (and @in-stories (re-matches #"##\s+.*" line))
-        (reset! in-stories false)
-
-        (and @in-stories (re-matches #"-\s+\S+:.*" line))
-        (when-let [m (re-find #"-\s+(\S+):\s+(.*)" line)]
-          (swap! results conj {:id (second m) :title (str/trim (nth m 2))}))))
-    @results))
-
-(defn- parse-section-items
-  "Parse items from a markdown section (## SectionName) as a list of strings."
-  [content section-name]
-  (let [lines (str/split-lines content)
-        in-section (atom false)
-        results (atom [])]
-    (doseq [line lines]
-      (cond
-        (re-matches (re-pattern (str "##\\s+" section-name "\\s*")) line)
-        (reset! in-section true)
-
-        (and @in-section (re-matches #"##\s+.*" line))
-        (reset! in-section false)
-
-        (and @in-section (re-find #"^-\s+(.*)" line))
-        (when-let [m (re-find #"^-\s+(.*)" line)]
-          (swap! results conj (str/trim (second m))))))
-    @results))
-
-(defn migrate-iteration-md
-  "Convert ITERATION.md content to an iteration EDN map."
-  [md-content]
-  (let [number (parse-iteration-number md-content)
-        status (keyword (or (parse-iteration-status md-content) "planning"))
-        stories (parse-iteration-stories md-content)
-        guardrails (parse-section-items md-content "Guardrails")
-        notes (parse-section-items md-content "Notes")
-        result {:number number :status status :stories stories}]
-    (cond-> result
-      (seq guardrails) (assoc :guardrails guardrails)
-      (seq notes) (assoc :notes notes))))
+  (mapv #(if (string? %) % (:id %)) (:stories iteration)))
 
 ;; --- Annotation and formatting ---
 
+(defn- normalize-story
+  "Normalize a story entry to {:id ... :title ...} map.
+   Handles both string ids and map entries."
+  [story]
+  (if (string? story)
+    {:id story :title nil}
+    story))
+
 (defn annotate-stories
   "Annotate stories with status, priority, and deps from bead data.
-   beads is a seq of maps with string keys."
+   beads is a seq of maps with string keys.
+   Stories can be maps with :id/:title or plain string ids."
   [stories beads]
   (let [bead-map (into {} (map (fn [b] [(get b "id") b]) beads))]
-    (mapv (fn [{:keys [id title]}]
-            (if-let [bead (get bead-map id)]
-              {:id id
-               :title title
-               :status (get bead "status" "unknown")
-               :priority (get bead "priority")
-               :deps (mapv #(get % "depends_on_id")
-                           (get bead "dependencies" []))}
-              {:id id :title title :status "unknown" :priority nil :deps []}))
+    (mapv (fn [story]
+            (let [{:keys [id title]} (normalize-story story)]
+              (if-let [bead (get bead-map id)]
+                {:id id
+                 :title (or title (get bead "title") id)
+                 :status (get bead "status" "unknown")
+                 :priority (get bead "priority")
+                 :deps (mapv #(get % "depends_on_id")
+                             (get bead "dependencies" []))}
+                {:id id :title (or title id) :status "unknown" :priority nil :deps []})))
           stories)))
 
 (defn completion-stats [stories]

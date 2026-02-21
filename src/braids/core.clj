@@ -9,7 +9,6 @@
             [braids.list-io :as list-io]
             [braids.iteration-io :as iter-io]
             [braids.status-io :as status-io]
-            [braids.migration-io :as mig-io]
             [braids.new-io :as new-io]
             [braids.init-io :as init-io]
             [braids.config :as config]
@@ -22,7 +21,6 @@
    "ready"     {:command :ready     :doc "List beads ready to work"}
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
    "spawn-msg" {:command :spawn-msg :doc "Emit spawn message for a bead (from orch-tick output)"}
-   "migrate"   {:command :migrate   :doc "Migrate markdown configs to EDN format"}
    "new"       {:command :new       :doc "Create a new project"}
    "init"      {:command :init      :doc "First-time setup for braids"}
    "config"    {:command :config    :doc "Get/set/list braids configuration"}
@@ -128,11 +126,5 @@
                             0))
                   ;; no subcommand or unknown
                   (do (println (config/config-help)) 0)))
-      :migrate (let [args (:args (dispatch args))
-                     dry-run? (some #{"--dry-run"} args)]
-                 (let [{:keys [report dry-run?]} (mig-io/run-migrate {:dry-run? dry-run?})]
-                   (when dry-run? (println "[DRY RUN]"))
-                   (println report)
-                   0))
       ;; Default for unimplemented commands
       (do (println (str "Command '" (name command) "' not yet implemented.")) 0))))
