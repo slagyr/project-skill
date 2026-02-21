@@ -87,4 +87,34 @@
     (it "formats beads as a list"
       (let [beads [{:project "proj" :id "proj-abc" :title "Do stuff" :priority "P0"}]]
         (should-contain "proj-abc" (ready/format-ready-output beads))
-        (should-contain "Do stuff" (ready/format-ready-output beads))))))
+        (should-contain "Do stuff" (ready/format-ready-output beads))))
+
+    (it "colorizes P1 priority in red"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Task" :priority "P1"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[31mP1\033[0m" output)))
+
+    (it "colorizes P2 priority in yellow"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Task" :priority "P2"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[33mP2\033[0m" output)))
+
+    (it "colorizes P3 priority in green"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Task" :priority "P3"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[32mP3\033[0m" output)))
+
+    (it "colorizes P0 priority in red (high priority)"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Task" :priority "P0"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[31mP0\033[0m" output)))
+
+    (it "renders bead title in bold white"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Do stuff" :priority "P1"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[1;37mDo stuff\033[0m" output)))
+
+    (it "colorizes project name in cyan"
+      (let [beads [{:project "proj" :id "proj-abc" :title "Task" :priority "P1"}]
+            output (ready/format-ready-output beads)]
+        (should-contain "\033[36mproj\033[0m" output)))))

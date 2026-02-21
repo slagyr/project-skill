@@ -3,6 +3,25 @@
 
 (def priority-order {:high 0 :normal 1 :low 2})
 
+;; ANSI color codes
+(def ^:private colors
+  {:red        "\033[31m"
+   :green      "\033[32m"
+   :yellow     "\033[33m"
+   :cyan       "\033[36m"
+   :bold-white "\033[1;37m"
+   :reset      "\033[0m"})
+
+(defn- colorize [text color]
+  (str (get colors color "") text (:reset colors)))
+
+(defn- priority-color [priority]
+  (case priority
+    ("P0" "P1") :red
+    "P2" :yellow
+    "P3" :green
+    nil))
+
 (defn ready-beads
   "Pure function: given registry, project configs, ready beads per project,
    and worker counts per project, returns a flat list of ready beads
@@ -24,13 +43,21 @@
          vec)))
 
 (defn format-ready-output
-  "Format ready beads for human-readable CLI output."
+  "Format ready beads for human-readable CLI output with ANSI colors."
   [beads]
   (if (empty? beads)
     "No ready beads."
     (str/join "\n"
       (map-indexed
         (fn [i {:keys [project id title priority]}]
-          (let [p (if (number? priority) (str "P" priority) (or priority "?"))]
-            (format "%d) [%s] %s: %s (%s)" (inc i) p id title project)))
+          (let [p (if (number? priority) (str "P" priority) (or priority "?"))
+                colored-p (if-let [c (priority-color p)]
+                            (colorize p c)
+                            p)]
+            (format "%d) [%s] %s: %s (%s)"
+                    (inc i)
+                    colored-p
+                    id
+                    (colorize title :bold-white)
+                    (colorize project :cyan))))
         beads))))
