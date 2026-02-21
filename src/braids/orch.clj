@@ -79,22 +79,29 @@
           :else
           {:action "idle" :reason "no-ready-beads" :disable-cron true})))))
 
+(def worker-instruction
+  "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md")
+
 (defn spawn-msg
   "Generate the spawn message string from a spawn entry (as returned by tick).
-   Format: Project/Bead/Iteration/Channel, one per line."
+   Includes worker.md instruction prefix followed by Project/Bead/Iteration/Channel."
   [{:keys [path bead iteration channel]}]
-  (str "Project: " path "\n"
+  (str worker-instruction "\n\n"
+       "Project: " path "\n"
        "Bead: " bead "\n"
        "Iteration: " iteration "\n"
        "Channel: " channel))
 
 (defn format-spawn-msg-json
-  "Format spawn message as JSON with message, label, and worker_timeout fields."
+  "Format spawn message as JSON with fields matching sessions_spawn parameters:
+   task, label, runTimeoutSeconds, cleanup, thinking."
   [{:keys [label worker-timeout] :as spawn}]
   (json/generate-string
-   {:message (spawn-msg spawn)
+   {:task (spawn-msg spawn)
     :label label
-    :worker_timeout worker-timeout}))
+    :runTimeoutSeconds worker-timeout
+    :cleanup "delete"
+    :thinking "low"}))
 
 (defn format-tick-json
   "Format tick result as JSON string."

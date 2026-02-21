@@ -62,24 +62,41 @@ Possible idle reasons: `no-active-iterations`, `no-ready-beads`, `all-at-capacit
 
 ### 4. Spawn Workers
 
-For each entry in the `spawns` array:
+For each entry in the `spawns` array, use `braids spawn-msg` to generate the complete spawn parameters:
+
+```bash
+braids spawn-msg '<spawn-json>' --json
+```
+
+This outputs JSON with all `sessions_spawn` fields ready to use:
+
+```json
+{
+  "task": "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md\n\nProject: <path>\nBead: <bead>\nIteration: <iteration>\nChannel: <channel>",
+  "label": "project:<slug>:<bead-id>",
+  "runTimeoutSeconds": 3600,
+  "cleanup": "delete",
+  "thinking": "low"
+}
+```
+
+Pass these fields directly to `sessions_spawn`:
 
 ```
 sessions_spawn(
-  task: "Project: <path>\nBead: <bead>\nIteration: <iteration>\nChannel: <channel>",
-  label: "<label>",
-  runTimeoutSeconds: <worker_timeout>,
-  cleanup: "delete",
-  thinking: "low"
+  task: <task>,
+  label: <label>,
+  runTimeoutSeconds: <runTimeoutSeconds>,
+  cleanup: <cleanup>,
+  thinking: <thinking>
 )
 ```
 
 Key spawn parameters:
+- **`task`** — includes the worker.md instruction so the worker knows how to onboard, plus the project/bead/iteration/channel details.
 - **`runTimeoutSeconds`** — hard kill after this many seconds (default 1800 = 30 min). Prevents zombie sessions from lingering indefinitely.
 - **`cleanup: "delete"`** — automatically removes the session after completion. Without this, finished sessions count toward `MaxWorkers` and block new spawns.
 - **`thinking: "low"`** — workers don't need deep reasoning; keeps cost and latency down.
-
-The spawn message is intentionally minimal. The worker reads `AGENTS.md` in the project directory for full onboarding.
 
 ### 5. Self-Disable on Idle
 

@@ -80,7 +80,7 @@ For each project, the number of healthy (non-zombie) running workers must never 
 Workers are only spawned for projects that have exactly one iteration with `Status: active`.
 
 ### 2.4 Spawn Message Format
-Worker spawn messages contain exactly four fields: `Project`, `Bead`, `Iteration`, `Channel`. Nothing more.
+Worker spawn messages are prefixed with the worker.md instruction ("You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md") followed by four fields: `Project`, `Bead`, `Iteration`, `Channel`. The `braids spawn-msg --json` command outputs a complete JSON object with `task`, `label`, `runTimeoutSeconds`, `cleanup`, and `thinking` fields ready for `sessions_spawn`.
 
 ### 2.5 Session Label Convention
 Workers are spawned with label `project:<slug>:<bead-id>`. The orchestrator uses the `project:<slug>` prefix to count active workers per project.

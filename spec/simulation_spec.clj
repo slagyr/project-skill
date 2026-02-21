@@ -175,8 +175,7 @@
 (describe "Scenario 6: Spawn Message Format"
   (it "spawn message has correct format"
     (let [msg (str "Project: " test-project "\nBead: test-sim-aaa\nIteration: 1\nChannel: test-channel-123")]
-      (should= 4 (count (str/split-lines msg)))
-      (should (re-find #"^Project:" msg))
+      (should-contain "Project:" msg)
       (should-contain "Bead:" msg)
       (should-contain "Iteration:" msg)
       (should-contain "Channel:" msg))))
