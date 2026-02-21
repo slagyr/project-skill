@@ -107,3 +107,19 @@
   "Format tick result as JSON string."
   [result]
   (json/generate-string result {:key-fn #(-> % name (.replace "-" "_"))}))
+
+(defn format-orch-run-json
+  "Format tick result as JSON with spawns pre-formatted for sessions_spawn.
+   Idle results pass through. Spawn results have each spawn entry replaced
+   with the full sessions_spawn parameters (task, label, runTimeoutSeconds, etc.)."
+  [tick-result]
+  (if (= "spawn" (:action tick-result))
+    (let [formatted-spawns (mapv (fn [spawn]
+                                   {:task (spawn-msg spawn)
+                                    :label (:label spawn)
+                                    :runTimeoutSeconds (:worker-timeout spawn)
+                                    :cleanup "delete"
+                                    :thinking "low"})
+                                 (:spawns tick-result))]
+      (json/generate-string {:action "spawn" :spawns formatted-spawns}))
+    (json/generate-string tick-result {:key-fn #(-> % name (.replace "-" "_"))})))

@@ -1,5 +1,6 @@
 (ns braids.orch-spec
   (:require [speclj.core :refer :all]
+            [cheshire.core :as json]
             [braids.orch :as orch]))
 
 (describe "braids.orch"
@@ -167,6 +168,52 @@
             json-str (orch/format-tick-json result)]
         (should-contain "\"action\":\"idle\"" json-str)
         (should-contain "no-ready-beads" json-str))))
+
+  (describe "format-orch-run-json"
+
+    (it "formats idle result with reason"
+      (let [tick-result {:action "idle" :reason "no-ready-beads" :disable-cron true}
+            json-str (orch/format-orch-run-json tick-result)
+            parsed (json/parse-string json-str true)]
+        (should= "idle" (:action parsed))
+        (should= "no-ready-beads" (:reason parsed))
+        (should= true (:disable_cron parsed))
+        (should-not-contain :spawns parsed)))
+
+    (it "formats spawn result with sessions_spawn-ready entries"
+      (let [tick-result {:action "spawn"
+                         :spawns [{:project "proj"
+                                   :bead "proj-abc"
+                                   :iteration "008"
+                                   :channel "123"
+                                   :path "/tmp/proj"
+                                   :label "project:proj:proj-abc"
+                                   :worker-timeout 3600}]}
+            json-str (orch/format-orch-run-json tick-result)
+            parsed (json/parse-string json-str true)
+            spawn (first (:spawns parsed))]
+        (should= "spawn" (:action parsed))
+        (should= 1 (count (:spawns parsed)))
+        (should-contain "Read and follow" (:task spawn))
+        (should-contain "Project: /tmp/proj" (:task spawn))
+        (should= "project:proj:proj-abc" (:label spawn))
+        (should= 3600 (:runTimeoutSeconds spawn))
+        (should= "delete" (:cleanup spawn))
+        (should= "low" (:thinking spawn))))
+
+    (it "formats multiple spawns"
+      (let [tick-result {:action "spawn"
+                         :spawns [{:project "a" :bead "a-1" :iteration "001"
+                                   :channel "111" :path "/tmp/a"
+                                   :label "project:a:a-1" :worker-timeout 1800}
+                                  {:project "b" :bead "b-2" :iteration "002"
+                                   :channel "222" :path "/tmp/b"
+                                   :label "project:b:b-2" :worker-timeout 3600}]}
+            json-str (orch/format-orch-run-json tick-result)
+            parsed (json/parse-string json-str true)]
+        (should= 2 (count (:spawns parsed)))
+        (should= "project:a:a-1" (:label (first (:spawns parsed))))
+        (should= "project:b:b-2" (:label (second (:spawns parsed)))))))
 
   (describe "no-ready-beads-projects"
 

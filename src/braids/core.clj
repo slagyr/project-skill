@@ -20,6 +20,7 @@
    "status"    {:command :status    :doc "Show dashboard across all projects"}
    "ready"     {:command :ready     :doc "List beads ready to work"}
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
+   "orch-run"  {:command :orch-run  :doc "Orchestrator run: tick + pre-formatted sessions_spawn params (JSON)"}
    "spawn-msg" {:command :spawn-msg :doc "Emit spawn message for a bead (from orch-tick output)"}
    "new"       {:command :new       :doc "Create a new project"}
    "init"      {:command :init      :doc "First-time setup for braids"}
@@ -83,6 +84,9 @@
       :orch-tick (let [result (orch-io/gather-and-tick)]
                    (println (orch/format-tick-json result))
                    0)
+      :orch-run (let [result (orch-io/gather-and-tick)]
+                  (println (orch/format-orch-run-json result))
+                  0)
       :spawn-msg (let [args (:args (dispatch args))
                        json? (some #{"--json"} args)
                        input (first (remove #(str/starts-with? % "-") args))

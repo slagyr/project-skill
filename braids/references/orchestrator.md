@@ -2,11 +2,13 @@
 
 You are the braids orchestrator. You do NOT perform bead work — you spawn workers that do.
 
+**IMPORTANT:** Keep this session lightweight. Do not read large files or produce verbose output. Every token accumulates across cron runs.
+
 ## Steps
 
 ### 1. Gather Session Labels
 
-Call `sessions_list` and collect all session labels. You'll need these for zombie detection and to pass to the CLI.
+Call `sessions_list` and collect all session labels. You'll need these for zombie detection.
 
 ### 2. Detect and Clean Up Zombies
 
@@ -20,29 +22,27 @@ Always check bead status before applying runtime threshold. A long-running sessi
 
 For each zombie: exclude from worker count, kill the session via `sessions_kill`, and notify the project channel if `blocker` notifications are enabled: `"🧟 Cleaned up zombie worker session for <bead-id>"`
 
-### 3. Run `braids orch-tick`
+### 3. Run `braids orch-run`
 
 Run the CLI command:
 
 ```
-braids orch-tick
+braids orch-run
 ```
 
-This handles all the heavy lifting: loading the registry, finding active iterations, checking project configs, loading ready beads, and computing spawn decisions. It outputs JSON:
+This handles all the heavy lifting AND pre-formats spawn parameters. It outputs JSON with one of two shapes:
 
-**Spawn result:**
+**Spawn result** (each entry is ready for `sessions_spawn`):
 ```json
 {
   "action": "spawn",
   "spawns": [
     {
-      "project": "my-project",
-      "bead": "my-project-abc",
-      "iteration": "008",
-      "channel": "123456",
-      "path": "~/Projects/my-project",
+      "task": "You are a project worker...",
       "label": "project:my-project:my-project-abc",
-      "worker_timeout": 1800
+      "runTimeoutSeconds": 1800,
+      "cleanup": "delete",
+      "thinking": "low"
     }
   ]
 }
@@ -52,7 +52,8 @@ This handles all the heavy lifting: loading the registry, finding active iterati
 ```json
 {
   "action": "idle",
-  "reason": "no-active-iterations"
+  "reason": "no-active-iterations",
+  "disable_cron": true
 }
 ```
 
@@ -62,25 +63,7 @@ Possible idle reasons: `no-active-iterations`, `no-ready-beads`, `all-at-capacit
 
 ### 4. Spawn Workers
 
-For each entry in the `spawns` array, use `braids spawn-msg` to generate the complete spawn parameters:
-
-```bash
-braids spawn-msg '<spawn-json>' --json
-```
-
-This outputs JSON with all `sessions_spawn` fields ready to use:
-
-```json
-{
-  "task": "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md\n\nProject: <path>\nBead: <bead>\nIteration: <iteration>\nChannel: <channel>",
-  "label": "project:<slug>:<bead-id>",
-  "runTimeoutSeconds": 3600,
-  "cleanup": "delete",
-  "thinking": "low"
-}
-```
-
-Pass these fields directly to `sessions_spawn`:
+For each entry in the `spawns` array, call `sessions_spawn` directly with the fields from the JSON:
 
 ```
 sessions_spawn(
@@ -92,22 +75,39 @@ sessions_spawn(
 )
 ```
 
-Key spawn parameters:
-- **`task`** — includes the worker.md instruction so the worker knows how to onboard, plus the project/bead/iteration/channel details.
-- **`runTimeoutSeconds`** — hard kill after this many seconds (default 1800 = 30 min). Prevents zombie sessions from lingering indefinitely.
-- **`cleanup: "delete"`** — automatically removes the session after completion. Without this, finished sessions count toward `MaxWorkers` and block new spawns.
-- **`thinking: "low"`** — workers don't need deep reasoning; keeps cost and latency down.
+No additional processing needed — the JSON entries map 1:1 to `sessions_spawn` parameters.
 
 ### 5. Self-Disable on Idle
 
-If the tick result includes `"disable_cron": true`, the orchestrator should disable its own cron job:
+If the result includes `"disable_cron": true`, disable the orchestrator cron job:
 
 1. Run `openclaw cron delete <cron-id>` to remove the orchestrator cron job
 2. Notify each project channel (if `no-ready-beads` notification is enabled) that the orchestrator is going idle
-3. The orchestrator will not run again until manually re-activated (e.g., when a new iteration is started)
+3. The orchestrator will not run again until manually re-activated
 
 This ensures **zero token usage** during idle periods. To re-activate, set up the cron job again (see SKILL.md § Cron Integration).
 
 ### 6. Done
 
 Do not do any bead work yourself. Just spawn and exit.
+
+## Troubleshooting
+
+### Context Overflow
+
+If this cron session hits "context overflow", the accumulated transcript is too large. Fix:
+
+```bash
+# Find the cron job id
+openclaw cron list --json
+
+# Delete and recreate with a fresh session
+openclaw cron rm <job-id>
+openclaw cron add \
+  --name "braids-orchestrator" \
+  --every 5m \
+  --session isolated \
+  --message "You are the braids orchestrator. Read and follow ~/.openclaw/skills/braids/references/orchestrator.md" \
+  --timeout-seconds 300 \
+  --no-deliver
+```
