@@ -184,15 +184,54 @@ This channel is for **planning and notifications only** — all actual work happ
 - Blocker/question alerts
 - Check-in review summaries
 
-### Channel Agent Convention
+## Agent Roles & Boundaries
 
-The channel/main session agent must **not** modify project files directly. Its role is strictly limited to:
-- **Creating beads** (stories/tasks)
-- **Planning and activating iterations**
-- **Reviewing deliverables**
-- **Answering questions** and unblocking workers
+**CRITICAL:** Braids uses a strict separation between coordination agents and execution agents.
 
-All file changes — SKILL.md, worker.md, orchestrator.md, config.edn, CONTRACTS.md, reference docs, etc. — must go through beads assigned to workers. This ensures every change is tracked, tested, and committed through the standard bead lifecycle. The channel agent should never `Edit` or `Write` project files itself; instead, it creates a bead describing the desired change and lets a worker execute it.
+### Channel Agents (Coordination Only)
+
+Channel agents — including agents in project Discord channels, main sessions, or any interactive context — serve **coordination roles only**:
+
+- ✅ **Planning:** Create beads, plan iterations, discuss strategy
+- ✅ **Management:** Review deliverables, unblock workers, answer questions
+- ✅ **Orchestration:** Enable/disable cron jobs, check project status
+- ❌ **NO EXECUTION:** Never modify project files, never do bead work
+
+**Rule:** Channel agents must NEVER use `Edit` or `Write` on project files. Instead, create a bead describing the desired change and let a spawned worker execute it.
+
+### Workers (Execution Only)
+
+Workers are spawned via `sessions_spawn` in isolated sessions with focused bead assignments:
+
+- ✅ **Execution:** Claim beads, modify files, write deliverables, commit changes
+- ✅ **Focused work:** Single bead scope, deep work without interruption
+- ✅ **Structured output:** Write to `.braids/iterations/N/bead-deliverable.md`
+
+**Rule:** Workers execute specific beads and exit. They don't coordinate with other workers or plan new work.
+
+### Why This Separation Matters
+
+Braids uses a **dual-agent architecture** — coordination agents (planners) and execution agents (workers) — to get the best of both interaction modes:
+
+**Fast planning vs. controlled execution.** When you're talking with your human in a channel, you want snappy back-and-forth: brainstorming priorities, scoping iterations, triaging blockers. That's the planner mode — conversational, lightweight, no file I/O. But when it's time to actually *do* the work — modify code, write docs, run tests — you want an isolated agent with full focus, proper git hygiene, and structured deliverables. That's the worker mode.
+
+Separating these modes gives you:
+
+1. **Accountability:** Every change is tracked through the bead lifecycle — no "drive-by edits" that skip the process
+2. **Focus:** Workers get isolated environments for deep work without chat noise
+3. **Concurrency:** Multiple workers can operate without coordination conflicts
+4. **Quality:** All changes go through the standard test/commit/deliver cycle
+5. **Speed:** Planning stays fast because the planner never blocks on execution — it spawns a worker and moves on
+
+**The planner-worker loop:** A coordination agent discusses a change with the human → creates a bead → spawns a worker (or lets the orchestrator cron pick it up) → worker claims, executes, delivers, and exits → planner reviews the deliverable with the human. This loop preserves fast interactive planning while ensuring every change flows through proper bead tracking.
+
+**Exception:** Channel agents may do direct file work ONLY when explicitly instructed by the human ("fix this config directly," "update this file now," etc.). Otherwise, use beads.
+
+### Setting Up the Dual-Agent Model
+
+For practical setup guidance:
+- **Existing agents** (planners): Add the coordinator constraint snippet to their AGENTS.md — see [`references/coordinator-constraint-snippet.md`](references/coordinator-constraint-snippet.md)
+- **New worker agents**: Use the worker agent template for a complete AGENTS.md + SOUL.md — see [`references/worker-agent-template.md`](references/worker-agent-template.md)
 
 ### Working a Project (Background Sessions)
 
