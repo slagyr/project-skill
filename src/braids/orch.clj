@@ -178,7 +178,7 @@
 (defn- bead-status-icon [status]
   (case status
     "blocked" "🚫"
-    "in-progress" "⚙️"
+    ("in-progress" "in_progress") "⚙️"
     "closed" "✓"
     "○"))
 
@@ -186,7 +186,7 @@
   (case status
     "blocked" :red
     "closed" :dim
-    ("open" "in-progress") :green
+    ("open" "in-progress" "in_progress") :green
     :green))
 
 (defn- config-status-color [status]
