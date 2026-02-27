@@ -110,23 +110,23 @@
       (let [result (orch/tick {:projects []} {} {} {} {} {})]
         (should= true (:disable-cron result))))
 
-    (it "returns disable-cron true when idle with no-ready-beads"
+    (it "returns disable-cron false when idle with no-ready-beads (active iterations exist)"
       (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
             configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
             iterations {"proj" "008"}
             beads {"proj" []}
             workers {}
             result (orch/tick registry configs iterations beads workers {})]
-        (should= true (:disable-cron result))))
+        (should= false (:disable-cron result))))
 
-    (it "returns disable-cron true when idle with all-at-capacity"
+    (it "returns disable-cron false when idle with all-at-capacity (active iterations exist)"
       (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
             configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
             iterations {"proj" "008"}
             beads {"proj" [{:id "proj-abc" :title "Do stuff" :priority "P1"}]}
             workers {"proj" 1}
             result (orch/tick registry configs iterations beads workers {})]
-        (should= true (:disable-cron result))))
+        (should= false (:disable-cron result))))
 
     (it "does not include disable-cron when spawning work"
       (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}

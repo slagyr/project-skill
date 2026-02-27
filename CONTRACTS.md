@@ -64,7 +64,9 @@ This document defines the invariants that the orchestrator, worker, and file for
 
 ### 1.5 Orchestrator Self-Disable
 
-When `orch-tick` returns an idle result, the JSON includes `"disable_cron": true`. The orchestrator agent must delete its cron job to achieve zero token usage. Re-activation is manual (e.g., when a new iteration is started).
+When `orch-tick` returns an idle result with reason `no-active-iterations`, the JSON includes `"disable_cron": true`. The orchestrator agent must delete its cron job to achieve zero token usage. Re-activation is manual (e.g., when a new iteration is started).
+
+When the idle reason is `no-ready-beads` or `all-at-capacity`, `"disable_cron": false` — the cron should stay active because active iterations exist and beads may become unblocked.
 
 ---
 

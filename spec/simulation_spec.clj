@@ -134,12 +134,12 @@
     (let [result (orch/tick {:projects []} {} {} {} {} {})]
       (should= true (:disable-cron result))))
 
-  (it "tick returns disable-cron true when idle with no-ready-beads"
+  (it "tick returns disable-cron false when idle with no-ready-beads (active iterations exist)"
     (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
           configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
           iterations {"proj" "008"}
           result (orch/tick registry configs iterations {"proj" []} {} {})]
-      (should= true (:disable-cron result))))
+      (should= false (:disable-cron result))))
 
   (it "tick does not include disable-cron when spawning"
     (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}

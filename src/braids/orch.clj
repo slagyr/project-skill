@@ -76,10 +76,10 @@
 
           ;; Check: are all eligible projects at capacity with beads?
           any-at-capacity
-          {:action "idle" :reason "all-at-capacity" :disable-cron true}
+          {:action "idle" :reason "all-at-capacity" :disable-cron false}
 
           :else
-          {:action "idle" :reason "no-ready-beads" :disable-cron true})))))
+          {:action "idle" :reason "no-ready-beads" :disable-cron false})))))
 
 (def worker-instruction
   "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md")
