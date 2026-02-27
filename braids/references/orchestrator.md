@@ -12,18 +12,24 @@ The orchestrator can have its own dedicated channel for announcements (spawn dec
 
 ### 1. Gather Sessions and Run `braids orch-run`
 
-Call `sessions_list` to get all sessions. Then pass them to the CLI for batch processing:
+Call `sessions_list` to get active session labels. Extract any `project:` labels, then pass them to the CLI:
 
 ```
-braids orch-run --session-labels '<JSON>'
+braids orch-run --sessions 'project:my-project:bead-abc project:other:other-xyz'
 ```
 
-The `--session-labels` flag accepts a JSON array of session objects:
-```json
-[{"label": "project:my-project:bead-id", "status": "running", "ageSeconds": 120}]
-```
+The `--sessions` flag accepts a space-separated string of session labels. The CLI then:
+1. Parses labels to extract project slug and bead-id per session
+2. Checks bead status for each via batch `bd list` to detect zombies (closed bead = zombie)
+3. Counts healthy workers per project (excluding zombies)
+4. Filters spawn list to respect max-workers per project
 
-This does everything in one CLI call: loads projects, computes spawn decisions, **and** detects zombies (batch bead status checks via `bd list` instead of individual `bd show` per session). This keeps the orchestrator fast even with many active projects.
+This keeps the orchestrator to just 3 tool calls:
+1. `sessions_list` → extract `project:` labels
+2. `braids orch-run --sessions <labels>` → filtered spawn list + zombies
+3. `sessions_spawn` for each entry
+
+**Legacy:** `--session-labels` (JSON array with status/age) is still supported for full zombie detection (session-ended, timeout). Use `--sessions` for the simpler, lower-token flow.
 
 The output JSON has one of two shapes:
 

@@ -88,10 +88,12 @@
                    (println (orch/format-tick-json result))
                    0)
       :orch-run (let [args (:args (dispatch args))
+                       sessions-str (second (drop-while #(not= "--sessions" %) args))
                        session-labels-json (second (drop-while #(not= "--session-labels" %) args))
-                       result (if session-labels-json
-                                (orch-io/gather-and-tick-with-zombies session-labels-json)
-                                (orch-io/gather-and-tick))]
+                       result (cond
+                                sessions-str (orch-io/gather-and-tick-from-session-labels sessions-str)
+                                session-labels-json (orch-io/gather-and-tick-with-zombies session-labels-json)
+                                :else (orch-io/gather-and-tick))]
                   (println (orch/format-orch-run-json result))
                   0)
       :spawn-msg (let [args (:args (dispatch args))

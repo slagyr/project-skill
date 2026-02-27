@@ -280,6 +280,53 @@
         (should= "project:proj:proj-abc" (:label (first result)))
         (should= "session-ended" (:reason (first result))))))
 
+  (describe "parse-session-labels-string"
+
+    (it "parses space-separated labels into list"
+      (should= ["project:proj:abc" "project:proj:def"]
+               (orch/parse-session-labels-string "project:proj:abc project:proj:def")))
+
+    (it "handles empty string"
+      (should= [] (orch/parse-session-labels-string "")))
+
+    (it "handles nil"
+      (should= [] (orch/parse-session-labels-string nil)))
+
+    (it "handles extra whitespace"
+      (should= ["project:proj:abc" "project:proj:def"]
+               (orch/parse-session-labels-string "  project:proj:abc   project:proj:def  ")))
+
+    (it "filters out non-project labels"
+      (should= ["project:proj:abc"]
+               (orch/parse-session-labels-string "other:thing project:proj:abc random"))))
+
+  (describe "detect-zombies-from-labels"
+
+    (it "detects zombie when bead is closed"
+      (let [labels ["project:proj:proj-abc"]
+            bead-statuses {"proj-abc" "closed"}
+            result (orch/detect-zombies-from-labels labels bead-statuses)]
+        (should= 1 (count result))
+        (should= "bead-closed" (:reason (first result)))
+        (should= "proj-abc" (:bead (first result)))))
+
+    (it "does not flag open bead as zombie"
+      (let [labels ["project:proj:proj-abc"]
+            bead-statuses {"proj-abc" "open"}
+            result (orch/detect-zombies-from-labels labels bead-statuses)]
+        (should= 0 (count result))))
+
+    (it "ignores non-project labels"
+      (let [labels ["other:thing"]
+            result (orch/detect-zombies-from-labels labels {})]
+        (should= 0 (count result))))
+
+    (it "treats missing bead status as open (not zombie)"
+      (let [labels ["project:proj:proj-abc"]
+            bead-statuses {}
+            result (orch/detect-zombies-from-labels labels bead-statuses)]
+        (should= 0 (count result)))))
+
   (describe "format-orch-run-json with zombies"
 
     (it "includes zombies array in spawn output"

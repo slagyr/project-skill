@@ -121,6 +121,25 @@
                      :else nil)))))
        vec))
 
+(defn parse-session-labels-string
+  "Parse a space-separated string of session labels into a vector of project: labels."
+  [s]
+  (if (or (nil? s) (clojure.string/blank? s))
+    []
+    (->> (clojure.string/split (clojure.string/trim s) #"\s+")
+         (filterv #(clojure.string/starts-with? % "project:")))))
+
+(defn detect-zombies-from-labels
+  "Lightweight zombie detection from plain labels (no session status/age).
+   Only detects bead-closed zombies. Returns vector of zombie entries."
+  [labels bead-statuses]
+  (->> labels
+       (keep (fn [label]
+               (when-let [[slug bead-id] (parse-project-label label)]
+                 (when (= "closed" (get bead-statuses bead-id "open"))
+                   {:slug slug :bead bead-id :label label :reason "bead-closed"}))))
+       vec))
+
 (def worker-instruction
   "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md")
 
