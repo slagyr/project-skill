@@ -255,46 +255,26 @@
                         (str "\n  → " (c (str desc cron-note) color)))]
     (str (clojure.string/join "\n" project-lines) "\n" decision-line "\n")))
 
-(def worker-instruction
-  "You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md")
-
-(defn spawn-msg
-  "Generate the spawn message string from a spawn entry (as returned by tick).
-   Includes worker.md instruction prefix followed by Project/Bead/Iteration/Channel."
-  [{:keys [path bead iteration channel]}]
-  (str worker-instruction "\n\n"
-       "Project: " path "\n"
-       "Bead: " bead "\n"
-       "Iteration: " iteration "\n"
-       "Channel: " channel))
-
-(defn format-spawn-msg-json
-  "Format spawn message as JSON with fields matching sessions_spawn parameters:
-   task, label, runTimeoutSeconds, cleanup, thinking."
-  [{:keys [label worker-timeout] :as spawn}]
-  (json/generate-string
-   {:task (spawn-msg spawn)
-    :label label
-    :runTimeoutSeconds worker-timeout
-    :cleanup "delete"
-    :thinking "low"}))
-
 (defn format-tick-json
   "Format tick result as JSON string."
   [result]
   (json/generate-string result {:key-fn #(-> % name (.replace "-" "_"))}))
 
 (defn format-orch-run-json
-  "Format tick result as JSON with spawns pre-formatted for sessions_spawn.
-   Idle results pass through. Spawn results have each spawn entry replaced
-   with the full sessions_spawn parameters (task, label, runTimeoutSeconds, etc.).
-   If a spawn has :worker-agent, includes agentId in the output.
-   If tick-result contains :zombies, includes them in the output."
+  "Format tick result as JSON with spawns containing structural data only.
+   Idle results pass through. Spawn results include project, bead, iteration,
+   channel, path, label, runTimeoutSeconds, cleanup, thinking, and optionally agentId.
+   The orchestrator agent constructs the task message itself using the template
+   in orchestrator.md. If tick-result contains :zombies, includes them in the output."
   [tick-result]
   (let [zombies (:zombies tick-result)
         base (if (= "spawn" (:action tick-result))
                (let [formatted-spawns (mapv (fn [spawn]
-                                              (cond-> {:task (spawn-msg spawn)
+                                              (cond-> {:project (:project spawn)
+                                                       :bead (:bead spawn)
+                                                       :iteration (:iteration spawn)
+                                                       :channel (:channel spawn)
+                                                       :path (:path spawn)
                                                        :label (:label spawn)
                                                        :runTimeoutSeconds (:worker-timeout spawn)
                                                        :cleanup "delete"

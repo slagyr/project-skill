@@ -60,13 +60,17 @@ This keeps the orchestrator to just 3 tool calls:
 
 The output JSON has one of two shapes:
 
-**Spawn result** (each entry is ready for `sessions_spawn`):
+**Spawn result** (structural data — the orchestrator constructs the task message):
 ```json
 {
   "action": "spawn",
   "spawns": [
     {
-      "task": "You are a project worker...",
+      "project": "my-project",
+      "bead": "my-project-abc",
+      "iteration": "008",
+      "channel": "1471680593497554998",
+      "path": "~/Projects/my-project",
       "label": "project:my-project:my-project-abc",
       "runTimeoutSeconds": 1800,
       "cleanup": "delete",
@@ -104,11 +108,11 @@ If the output includes a `zombies` array, for each zombie:
 
 ### 3. Spawn Workers
 
-For each entry in the `spawns` array, call `sessions_spawn` directly with the fields from the JSON:
+For each entry in the `spawns` array, construct the task message using the **Worker Prompt Template** below, then call `sessions_spawn`:
 
 ```
 sessions_spawn(
-  task: <task>,
+  task: <constructed task message>,
   label: <label>,
   runTimeoutSeconds: <runTimeoutSeconds>,
   cleanup: <cleanup>,
@@ -117,7 +121,20 @@ sessions_spawn(
 )
 ```
 
-No additional processing needed — the JSON entries map 1:1 to `sessions_spawn` parameters.
+#### Worker Prompt Template
+
+Construct the `task` field for each spawn entry using this template, filling in values from the spawn JSON:
+
+```
+You are a project worker for the braids skill. Read and follow ~/.openclaw/skills/braids/references/worker.md
+
+Project: <path>
+Bead: <bead>
+Iteration: <iteration>
+Channel: <channel>
+```
+
+The CLI provides the structural data; the orchestrator owns the prompt content.
 
 ### 4. Self-Disable on Idle
 

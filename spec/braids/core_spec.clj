@@ -76,24 +76,6 @@
       (let [result (core/run ["nonexistent"])]
         (should= 1 result)))
 
-    (it "spawn-msg outputs spawn message with worker instruction prefix"
-      (let [spawn-json "{\"project\":\"proj\",\"bead\":\"proj-abc\",\"iteration\":\"008\",\"channel\":\"123\",\"path\":\"/tmp/proj\",\"label\":\"project:proj:proj-abc\",\"worker_timeout\":3600}"
-            output (with-out-str (core/run ["spawn-msg" spawn-json]))]
-        (should-contain "Read and follow" output)
-        (should-contain "Project: /tmp/proj" output)
-        (should-contain "Bead: proj-abc" output)
-        (should-contain "Iteration: 008" output)
-        (should-contain "Channel: 123" output)))
-
-    (it "spawn-msg --json outputs JSON with task and sessions_spawn fields"
-      (let [spawn-json "{\"project\":\"proj\",\"bead\":\"proj-abc\",\"iteration\":\"008\",\"channel\":\"123\",\"path\":\"/tmp/proj\",\"label\":\"project:proj:proj-abc\",\"worker_timeout\":3600}"
-            output (with-out-str (core/run ["spawn-msg" spawn-json "--json"]))]
-        (should-contain "\"task\":" output)
-        (should-contain "\"label\":" output)
-        (should-contain "\"runTimeoutSeconds\":3600" output)
-        (should-contain "\"cleanup\":\"delete\"" output)
-        (should-contain "\"thinking\":\"low\"" output)))
-
-    (it "spawn-msg with no args prints usage"
+    (it "spawn-msg is removed (unknown command)"
       (let [result (core/run ["spawn-msg"])]
         (should= 1 result)))))

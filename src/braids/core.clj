@@ -1,6 +1,5 @@
 (ns braids.core
   (:require [clojure.string :as str]
-            [clojure.set :as set]
             [cheshire.core :as json]
             [braids.ready :as ready]
             [braids.ready-io :as ready-io]
@@ -19,7 +18,6 @@
    "ready"     {:command :ready     :doc "List beads ready to work"}
    "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
    "orch-run"  {:command :orch-run  :doc "Orchestrator run: tick + pre-formatted sessions_spawn params (JSON)"}
-   "spawn-msg" {:command :spawn-msg :doc "Emit spawn message for a bead (from orch-tick output)"}
    "new"       {:command :new       :doc "Create a new project"}
    "init"      {:command :init      :doc "First-time setup for braids"}
    "config"    {:command :config    :doc "Get/set/list braids configuration"}
@@ -102,21 +100,7 @@
                     (flush))
                   (println (orch/format-orch-run-json result))
                   0)
-      :spawn-msg (let [args (:args (dispatch args))
-                       json? (some #{"--json"} args)
-                       input (first (remove #(str/starts-with? % "-") args))
-                       spawn (when input
-                               (json/parse-string input true))]
-                   (if spawn
-                     (let [spawn (-> spawn
-                                     (set/rename-keys {:worker_timeout :worker-timeout}))]
-                       (if json?
-                         (println (orch/format-spawn-msg-json spawn))
-                         (println (orch/spawn-msg spawn)))
-                       0)
-                     (do (println "Usage: braids spawn-msg '<spawn-json>' [--json]")
-                         (println "  Pass a spawn entry JSON (from orch-tick output) as argument.")
-                         1)))
+
       :init (let [args (:args (dispatch args))
                  result (init-io/run-init args)]
               (println (:message result))
