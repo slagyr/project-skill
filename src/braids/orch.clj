@@ -32,55 +32,67 @@
 
 (defn tick
   "Pure orchestrator tick. Given registry, project configs, active iterations map
-   (slug->iteration-number), ready beads per project, worker counts, and notification configs,
-   returns a decision: spawn list or idle with reason."
-  [registry configs iterations beads workers _notifications]
-  (let [eligible (eligible-projects registry configs iterations)]
-    (if (empty? eligible)
-      {:action "idle" :reason "no-active-iterations" :disable-cron true}
-      ;; Build spawn list: for each eligible project with capacity and beads
-      (let [spawns (vec
-                    (mapcat
-                     (fn [{:keys [slug path]}]
-                       (let [cfg (get configs slug)
-                             max-w (or (:max-workers cfg) 1)
-                             current-w (get workers slug 0)
-                             available (- max-w current-w)
-                             project-beads (get beads slug [])
-                             to-spawn (take available project-beads)
-                             iteration (get iterations slug)
-                             channel (or (:channel cfg) "")
-                             timeout (or (:worker-timeout cfg) (:worker-timeout pc/defaults))
-                             agent-id (:worker-agent cfg)]
-                         (map (fn [bead]
-                                (cond-> {:project slug
-                                         :bead (:id bead)
-                                         :iteration iteration
-                                         :channel channel
-                                         :path path
-                                         :label (str "project:" slug ":" (:id bead))
-                                         :worker-timeout timeout}
-                                  agent-id (assoc :worker-agent agent-id)))
-                              to-spawn)))
-                     eligible))
-            ;; Determine if any projects had beads but were at capacity
-            any-at-capacity (some (fn [{:keys [slug]}]
-                                    (let [cfg (get configs slug)
-                                          max-w (or (:max-workers cfg) 1)
-                                          current-w (get workers slug 0)]
-                                      (and (>= current-w max-w)
-                                           (seq (get beads slug [])))))
-                                  eligible)]
-        (cond
-          (seq spawns)
-          {:action "spawn" :spawns spawns}
+   (slug->iteration-number), ready beads per project, worker counts, notification configs,
+   and optionally open-beads (slug->all-open-beads including blocked),
+   returns a decision: spawn list or idle with reason.
+   When open-beads is provided: disable-cron is true if no project has open beads.
+   When open-beads is nil (backward compat): disable-cron false for no-ready-beads."
+  ([registry configs iterations beads workers notifications]
+   (tick registry configs iterations beads workers notifications nil))
+  ([registry configs iterations beads workers _notifications open-beads]
+   (let [eligible (eligible-projects registry configs iterations)]
+     (if (empty? eligible)
+       {:action "idle" :reason "no-active-iterations" :disable-cron true}
+       ;; Build spawn list: for each eligible project with capacity and beads
+       (let [spawns (vec
+                     (mapcat
+                      (fn [{:keys [slug path]}]
+                        (let [cfg (get configs slug)
+                              max-w (or (:max-workers cfg) 1)
+                              current-w (get workers slug 0)
+                              available (- max-w current-w)
+                              project-beads (get beads slug [])
+                              to-spawn (take available project-beads)
+                              iteration (get iterations slug)
+                              channel (or (:channel cfg) "")
+                              timeout (or (:worker-timeout cfg) (:worker-timeout pc/defaults))
+                              agent-id (:worker-agent cfg)]
+                          (map (fn [bead]
+                                 (cond-> {:project slug
+                                          :bead (:id bead)
+                                          :iteration iteration
+                                          :channel channel
+                                          :path path
+                                          :label (str "project:" slug ":" (:id bead))
+                                          :worker-timeout timeout}
+                                   agent-id (assoc :worker-agent agent-id)))
+                               to-spawn)))
+                      eligible))
+             ;; Determine if any projects had beads but were at capacity
+             any-at-capacity (some (fn [{:keys [slug]}]
+                                     (let [cfg (get configs slug)
+                                           max-w (or (:max-workers cfg) 1)
+                                           current-w (get workers slug 0)]
+                                       (and (>= current-w max-w)
+                                            (seq (get beads slug [])))))
+                                   eligible)
+             ;; Check if any eligible project has open beads (when open-beads provided)
+             has-open-beads (if (nil? open-beads)
+                              true ;; backward compat: assume open beads exist
+                              (some (fn [{:keys [slug]}]
+                                      (seq (get open-beads slug [])))
+                                    eligible))]
+         (cond
+           (seq spawns)
+           {:action "spawn" :spawns spawns}
 
-          ;; Check: are all eligible projects at capacity with beads?
-          any-at-capacity
-          {:action "idle" :reason "all-at-capacity" :disable-cron false}
+           ;; Check: are all eligible projects at capacity with beads?
+           any-at-capacity
+           {:action "idle" :reason "all-at-capacity" :disable-cron false}
 
-          :else
-          {:action "idle" :reason "no-ready-beads" :disable-cron false})))))
+           :else
+           {:action "idle" :reason "no-ready-beads"
+            :disable-cron (not (boolean has-open-beads))}))))))
 
 (defn- parse-project-label
   "Parse a project: label into [slug bead-id] or nil."

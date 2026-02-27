@@ -53,6 +53,22 @@
           {}))
       (catch Exception _ {}))))
 
+(defn load-open-beads
+  "Load open (non-closed) beads for a project using `bd list --json`.
+   Returns a vector of bead maps that are not closed."
+  [project-path]
+  (let [path (if (str/starts-with? project-path "~/")
+               (str (fs/expand-home "~") "/" (subs project-path 2))
+               project-path)]
+    (try
+      (let [result (proc/shell {:dir path :out :string :err :string}
+                               "bd" "list" "--json")
+            parsed (json/parse-string (:out result) true)]
+        (if (sequential? parsed)
+          (vec (filter #(not= "closed" (str/lower-case (or (:status %) "open"))) parsed))
+          []))
+      (catch Exception _ []))))
+
 (defn- parse-session-labels
   "Parse session info from JSON. Accepts either:
    - Array of strings (labels only, no zombie detection possible for bead-closed/timeout)
@@ -94,8 +110,13 @@
          notifications (into {} (map (fn [{:keys [slug]}]
                                        [slug (select-keys (get configs slug)
                                                           [:notifications :notification-mentions])])
-                                     active-projects))]
-     (orch/tick reg configs iterations beads workers notifications))))
+                                     active-projects))
+         open-beads (into {} (map (fn [{:keys [slug path]}]
+                                    [slug (if (contains? iterations slug)
+                                            (load-open-beads path)
+                                            [])])
+                                  active-projects))]
+     (orch/tick reg configs iterations beads workers notifications open-beads))))
 
 
 (defn gather-and-tick-with-zombies
@@ -144,7 +165,12 @@
                                       [slug (select-keys (get configs slug)
                                                          [:notifications :notification-mentions])])
                                     active-projects))
-        tick-result (orch/tick reg configs iterations beads workers notifications)]
+        open-beads (into {} (map (fn [{:keys [slug path]}]
+                              [slug (if (contains? iterations slug)
+                                      (load-open-beads path)
+                                      [])])
+                            active-projects))
+        tick-result (orch/tick reg configs iterations beads workers notifications open-beads)]
     (cond-> tick-result
       (seq zombies) (assoc :zombies zombies))))
 
@@ -193,6 +219,11 @@
                                       [slug (select-keys (get configs slug)
                                                          [:notifications :notification-mentions])])
                                     active-projects))
-        tick-result (orch/tick reg configs iterations beads workers notifications)]
+        open-beads (into {} (map (fn [{:keys [slug path]}]
+                              [slug (if (contains? iterations slug)
+                                      (load-open-beads path)
+                                      [])])
+                            active-projects))
+        tick-result (orch/tick reg configs iterations beads workers notifications open-beads)]
     (cond-> tick-result
       (seq zombies) (assoc :zombies zombies))))

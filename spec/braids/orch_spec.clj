@@ -110,7 +110,37 @@
       (let [result (orch/tick {:projects []} {} {} {} {} {})]
         (should= true (:disable-cron result))))
 
-    (it "returns disable-cron false when idle with no-ready-beads (active iterations exist)"
+    (it "returns disable-cron false when idle with no-ready-beads but open beads exist"
+      (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
+            configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
+            iterations {"proj" "008"}
+            beads {"proj" []}
+            workers {}
+            open-beads {"proj" [{:id "proj-xyz" :status "blocked"}]}
+            result (orch/tick registry configs iterations beads workers {} open-beads)]
+        (should= false (:disable-cron result))))
+
+    (it "returns disable-cron true when idle with no-ready-beads and no open beads"
+      (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
+            configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
+            iterations {"proj" "008"}
+            beads {"proj" []}
+            workers {}
+            open-beads {"proj" []}
+            result (orch/tick registry configs iterations beads workers {} open-beads)]
+        (should= true (:disable-cron result))))
+
+    (it "returns disable-cron true when no-ready-beads and open-beads not provided for project"
+      (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
+            configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
+            iterations {"proj" "008"}
+            beads {"proj" []}
+            workers {}
+            open-beads {}
+            result (orch/tick registry configs iterations beads workers {} open-beads)]
+        (should= true (:disable-cron result))))
+
+    (it "returns disable-cron false when no-ready-beads without open-beads param (backward compat)"
       (let [registry {:projects [{:slug "proj" :status :active :priority :normal :path "/tmp/proj"}]}
             configs {"proj" {:name "Proj" :status :active :max-workers 1 :channel "123"}}
             iterations {"proj" "008"}
