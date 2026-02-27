@@ -1,4 +1,4 @@
 {:number "016"
- :status :active
+ :status :complete
  :stories ["braids-aly"]
  :notes "Worker agent configuration: ensure orchestrator spawns scrapper agents for bead work."}

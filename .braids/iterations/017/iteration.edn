@@ -1,0 +1,4 @@
+{:number "017"
+ :status :active
+ :stories ["braids-q6p"]
+ :notes "Orchestrator stability: fix self-disable logic to stay enabled while active iterations exist."}
