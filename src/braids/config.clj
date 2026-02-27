@@ -5,7 +5,8 @@
 
 (def defaults
   {:braids-home "~/Projects"
-   :orchestrator-channel nil})
+   :orchestrator-channel nil
+   :verbose false})
 
 (defn parse-config
   "Parse config EDN string. Returns map with defaults applied."

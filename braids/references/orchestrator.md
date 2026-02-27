@@ -8,6 +8,33 @@ You are the braids orchestrator. You do NOT perform bead work — you spawn work
 
 The orchestrator can have its own dedicated channel for announcements (spawn decisions, idle events, errors), separate from per-project channels. Check `~/.openclaw/braids/config.edn` for the `:orchestrator-channel` field. If set, post orchestrator-level summaries (spawn counts, idle notifications, zombie cleanups) to that channel. If not set, skip orchestrator-level announcements (project-specific notifications still go to each project's channel).
 
+## Verbose Mode
+
+When `:verbose true` is set in `~/.openclaw/braids/config.edn`, the orchestrator posts a detailed summary to the `:orchestrator-channel` on **every tick**. This provides full observability into orchestrator decisions.
+
+Check verbose mode: `braids config get verbose`
+
+When verbose is enabled, post to the orchestrator channel **after** running `braids orch-run` with a message like:
+
+```
+🤖 Orchestrator tick — <current time>
+
+**Sessions:** <list of project: session labels passed to CLI, or "none">
+
+**CLI input:** braids orch-run --sessions '<labels>'
+
+**CLI output:**
+```json
+<raw JSON output from orch-run>
+```
+
+**Decision:** <human-readable summary, e.g. "Spawning 2 workers → bead-abc, bead-xyz" or "Idle: no-ready-beads">
+```
+
+**When verbose is off (default):** Skip the detailed tick summary. The orchestrator channel still receives spawn counts, idle notifications, and zombie cleanups per the normal notification rules.
+
+**Token impact:** Verbose mode adds one channel message per tick. This is fine for debugging but can be noisy — disable it once you're satisfied the orchestrator is working correctly.
+
 ## Steps
 
 ### 1. Gather Sessions and Run `braids orch-run`
