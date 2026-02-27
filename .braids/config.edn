@@ -1,4 +1,5 @@
-{:name "Braids"
+{:worker-agent "scrapper"
+ :name "Braids"
  :status :active
  :priority :high
  :autonomy :full

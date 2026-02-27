@@ -49,15 +49,17 @@
                              to-spawn (take available project-beads)
                              iteration (get iterations slug)
                              channel (or (:channel cfg) "")
-                             timeout (or (:worker-timeout cfg) (:worker-timeout pc/defaults))]
+                             timeout (or (:worker-timeout cfg) (:worker-timeout pc/defaults))
+                             agent-id (:worker-agent cfg)]
                          (map (fn [bead]
-                                {:project slug
-                                 :bead (:id bead)
-                                 :iteration iteration
-                                 :channel channel
-                                 :path path
-                                 :label (str "project:" slug ":" (:id bead))
-                                 :worker-timeout timeout})
+                                (cond-> {:project slug
+                                         :bead (:id bead)
+                                         :iteration iteration
+                                         :channel channel
+                                         :path path
+                                         :label (str "project:" slug ":" (:id bead))
+                                         :worker-timeout timeout}
+                                  agent-id (assoc :worker-agent agent-id)))
                               to-spawn)))
                      eligible))
             ;; Determine if any projects had beads but were at capacity
@@ -111,15 +113,17 @@
 (defn format-orch-run-json
   "Format tick result as JSON with spawns pre-formatted for sessions_spawn.
    Idle results pass through. Spawn results have each spawn entry replaced
-   with the full sessions_spawn parameters (task, label, runTimeoutSeconds, etc.)."
+   with the full sessions_spawn parameters (task, label, runTimeoutSeconds, etc.).
+   If a spawn has :worker-agent, includes agentId in the output."
   [tick-result]
   (if (= "spawn" (:action tick-result))
     (let [formatted-spawns (mapv (fn [spawn]
-                                   {:task (spawn-msg spawn)
-                                    :label (:label spawn)
-                                    :runTimeoutSeconds (:worker-timeout spawn)
-                                    :cleanup "delete"
-                                    :thinking "low"})
+                                   (cond-> {:task (spawn-msg spawn)
+                                            :label (:label spawn)
+                                            :runTimeoutSeconds (:worker-timeout spawn)
+                                            :cleanup "delete"
+                                            :thinking "low"}
+                                     (:worker-agent spawn) (assoc :agentId (:worker-agent spawn))))
                                  (:spawns tick-result))]
       (json/generate-string {:action "spawn" :spawns formatted-spawns}))
     (json/generate-string tick-result {:key-fn #(-> % name (.replace "-" "_"))})))

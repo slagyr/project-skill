@@ -42,7 +42,8 @@ This handles all the heavy lifting AND pre-formats spawn parameters. It outputs 
       "label": "project:my-project:my-project-abc",
       "runTimeoutSeconds": 1800,
       "cleanup": "delete",
-      "thinking": "low"
+      "thinking": "low",
+      "agentId": "scrapper"
     }
   ]
 }
@@ -71,7 +72,8 @@ sessions_spawn(
   label: <label>,
   runTimeoutSeconds: <runTimeoutSeconds>,
   cleanup: <cleanup>,
-  thinking: <thinking>
+  thinking: <thinking>,
+  agentId: <agentId>  # if present in spawn entry
 )
 ```
 
