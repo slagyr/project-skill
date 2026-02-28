@@ -17,7 +17,7 @@
                      :zombies []
                      :tick-result {:action "spawn" :spawns [{:project "myproj" :bead "myproj-abc"}]}}
                     "2026-02-27T16:00:00")]
-        (should-contain "=== orch-run 2026-02-27T16:00:00 ===" (first lines))))
+        (should-contain "=== orch-tick 2026-02-27T16:00:00 ===" (first lines))))
 
     (it "logs registry project count"
       (let [lines (log/format-log-lines

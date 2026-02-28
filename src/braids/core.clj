@@ -17,8 +17,7 @@
   {"list"      {:command :list      :doc "Show projects with status, iterations, and progress"}
    "iteration" {:command :iteration :doc "Show active iteration and bead statuses"}
    "ready"     {:command :ready     :doc "List beads ready to work"}
-   "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawn decisions (JSON)"}
-   "orch-run"  {:command :orch-run  :doc "Orchestrator run: tick + pre-formatted sessions_spawn params (JSON)"}
+   "orch-tick" {:command :orch-tick :doc "Orchestrator tick: compute spawns, detect zombies, log to /tmp/braids.log (JSON)"}
    "new"       {:command :new       :doc "Create a new project"}
    "init"      {:command :init      :doc "First-time setup for braids"}
    "config"    {:command :config    :doc "Get/set/list braids configuration"}
@@ -83,10 +82,7 @@
       :ready (let [result (ready-io/gather-and-compute)]
                (println (ready/format-ready-output result))
                0)
-      :orch-tick (let [result (orch-io/gather-and-tick)]
-                   (println (orch/format-tick-json result))
-                   0)
-      :orch-run (let [start-ms (System/currentTimeMillis)
+      :orch-tick (let [start-ms (System/currentTimeMillis)
                        args (:args (dispatch args))
                        sessions-str (second (drop-while #(not= "--sessions" %) args))
                        session-labels-json (second (drop-while #(not= "--session-labels" %) args))
@@ -108,7 +104,7 @@
                                     timestamp)]
                     (orch-log/write-log! "/tmp/braids.log"
                       (conj log-lines (str "Duration: " (- (System/currentTimeMillis) start-ms) "ms"))))
-                  (println (orch/format-orch-run-json result))
+                  (println (orch/format-orch-tick-json result))
                   0)
 
       :init (let [args (:args (dispatch args))

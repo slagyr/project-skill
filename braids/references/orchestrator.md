@@ -10,12 +10,12 @@ The orchestrator can have its own dedicated channel for announcements (spawn dec
 
 ## Steps
 
-### 1. Run `braids orch-run`
+### 1. Run `braids orch-tick`
 
 Run the CLI with no flags — it collects session information internally by reading the openclaw session stores:
 
 ```
-braids orch-run
+braids orch-tick
 ```
 
 The CLI:
@@ -26,7 +26,7 @@ The CLI:
 5. Computes spawn decisions respecting max-workers per project
 
 This keeps the orchestrator to just 2 tool calls:
-1. `braids orch-run` → filtered spawn list + zombies
+1. `braids orch-tick` → filtered spawn list + zombies
 2. `sessions_spawn` for each entry
 
 **Legacy:** `--sessions` (space-separated labels) and `--session-labels` (JSON array with status/age) flags are still supported for backward compatibility, but no longer needed.

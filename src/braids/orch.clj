@@ -206,7 +206,7 @@
     :yellow))
 
 (defn format-debug-output
-  "Format human-readable debug output for orch-run. Pure function.
+  "Format human-readable debug output for orch-tick. Pure function.
    Takes registry, configs, iterations map, open-beads map (slug->[bead-maps]),
    and tick-result. Returns a multi-line string for stderr."
   [registry configs iterations open-beads tick-result]
@@ -261,7 +261,7 @@
   [result]
   (json/generate-string result {:key-fn #(-> % name (.replace "-" "_"))}))
 
-(defn format-orch-run-json
+(defn format-orch-tick-json
   "Format tick result as JSON with spawns containing structural data only.
    Idle results pass through. Spawn results include project, bead, iteration,
    channel, path, label, runTimeoutSeconds, cleanup, thinking, and optionally agentId.

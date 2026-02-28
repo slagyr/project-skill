@@ -209,11 +209,11 @@
         (should-contain "\"action\":\"idle\"" json-str)
         (should-contain "no-ready-beads" json-str))))
 
-  (describe "format-orch-run-json"
+  (describe "format-orch-tick-json"
 
     (it "formats idle result with reason"
       (let [tick-result {:action "idle" :reason "no-ready-beads" :disable-cron true}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should= "idle" (:action parsed))
         (should= "no-ready-beads" (:reason parsed))
@@ -229,7 +229,7 @@
                                    :path "/tmp/proj"
                                    :label "project:proj:proj-abc"
                                    :worker-timeout 3600}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)
             spawn (first (:spawns parsed))]
         (should= "spawn" (:action parsed))
@@ -253,7 +253,7 @@
                                   {:project "b" :bead "b-2" :iteration "002"
                                    :channel "222" :path "/tmp/b"
                                    :label "project:b:b-2" :worker-timeout 3600}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should= 2 (count (:spawns parsed)))
         (should= "project:a:a-1" (:label (first (:spawns parsed))))
@@ -384,7 +384,7 @@
             result (orch/detect-zombies-from-labels labels bead-statuses)]
         (should= 0 (count result)))))
 
-  (describe "format-orch-run-json with zombies"
+  (describe "format-orch-tick-json with zombies"
 
     (it "includes zombies array in spawn output"
       (let [tick-result {:action "spawn"
@@ -392,7 +392,7 @@
                                    :channel "123" :path "/tmp/proj"
                                    :label "project:proj:proj-abc" :worker-timeout 3600}]
                          :zombies [{:slug "proj" :bead "proj-old" :label "project:proj:proj-old" :reason "session-ended"}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should= 1 (count (:zombies parsed)))
         (should= "proj-old" (:bead (first (:zombies parsed))))))
@@ -400,21 +400,21 @@
     (it "includes zombies array in idle output"
       (let [tick-result {:action "idle" :reason "no-ready-beads" :disable-cron false
                          :zombies [{:slug "proj" :bead "proj-old" :label "project:proj:proj-old" :reason "timeout"}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should= 1 (count (:zombies parsed)))))
 
     (it "includes sessionId in zombie JSON when present"
       (let [tick-result {:action "idle" :reason "no-ready-beads" :disable-cron false
                          :zombies [{:slug "proj" :bead "proj-old" :label "project:proj:proj-old" :reason "timeout" :session-id "sess-456"}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should= "sess-456" (:sessionId (first (:zombies parsed))))))
 
     (it "omits sessionId from zombie JSON when not present"
       (let [tick-result {:action "idle" :reason "no-ready-beads" :disable-cron false
                          :zombies [{:slug "proj" :bead "proj-old" :label "project:proj:proj-old" :reason "timeout"}]}
-            json-str (orch/format-orch-run-json tick-result)
+            json-str (orch/format-orch-tick-json tick-result)
             parsed (json/parse-string json-str true)]
         (should-not-contain :sessionId (first (:zombies parsed))))))
 

@@ -6,7 +6,7 @@
    Context keys: :registry :configs :iterations :open-beads :ready-beads :workers :zombies :tick-result"
   [{:keys [registry configs iterations open-beads ready-beads workers zombies tick-result]} timestamp]
   (let [projects (:projects registry)
-        lines (transient [(str "=== orch-run " timestamp " ===")
+        lines (transient [(str "=== orch-tick " timestamp " ===")
                           (str "Registry: " (count projects) " projects")])]
     ;; Per-project details
     (doseq [{:keys [slug]} projects]
